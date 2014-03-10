@@ -1,0 +1,22 @@
+{
+  "name": "node-shipwire",
+  "version": "0.0.0",
+  "description": "Node library to communicate with the Shipwire API",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "shipwire",
+    "shipping",
+    "rate",
+    "orders",
+    "tracking"
+  ],
+  "author": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
+  "license": "BSD",
+  "dependencies": {
+    "xml2js": "^0.4.1"
+  }
+}
