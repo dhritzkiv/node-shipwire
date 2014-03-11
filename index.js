@@ -8,22 +8,45 @@ function parseXML(string, next) {
 		if (err) {
 			return next(err);
 		}
-		if (!result.TrackingUpdateResponse.Order) {
-			return next(null, []);
+
+		if (result.TrackingUpdateResponse) {
+
+			var orders = result.TrackingUpdateResponse.Order;
+
+			if (!orders || !orders.length) { //array of orders;
+				return next(null, []);
+			}
+
+			orders = orders.map(function(order) {
+				var thisOrder = order["$"];
+				if (order.TrackingNumber) {
+					order.TrackingNumber = order.TrackingNumber.map(function(item) {
+						var thisTrackingNumber = item["$"];
+						thisTrackingNumber.trackingNumber = item["_"].replace(/[^a-zA-Z0-9\-\_]/g, "");
+						return thisTrackingNumber;
+					})
+					thisOrder.trackingNumber = order.TrackingNumber[0];
+				}
+				return thisOrder;
+			});
+
+			next(null, orders);
 		}
 
-		next(null, result.TrackingUpdateResponse.Order.map(function(order) {
-			var thisOrder = order["$"];
-			if (order.TrackingNumber) {
-				order.TrackingNumber = order.TrackingNumber.map(function(item) {
-					var thisTrackingNumber = item["$"];
-					thisTrackingNumber.trackingNumber = item["_"].replace(/[^a-zA-Z0-9\-\_]/g, "");
-					return thisTrackingNumber;
-				})
-				thisOrder.trackingNumber = order.TrackingNumber[0];
+		if (result.InventoryUpdateResponse) {
+			var products = result.InventoryUpdateResponse.Product;
+
+			if (!products || !products.length) {
+				return next(null, []);
 			}
-			return thisOrder;
-		}));
+			products = products.map(function(product) {
+				var thisProduct = product["$"];
+				return thisProduct;
+			});
+
+			next(null, products);
+		}
+
 	});
 }
 
@@ -35,8 +58,8 @@ function Shipwire(options) {
 
 	options.username;
 	options.password;
-	options.production = typeof options.production != "undefined" ? !!options.production : false;
-	options.server = options.production ? "Production" : "Test"; //Test or Production
+	options.test = options.test || false;
+	options.server = options.test ? "Test" : "Production"; //Test or Production, default to production
 	options.sandbox = typeof options.sandbox != "undefined" ? !!options.sandbox : false;
 
 	var requestOptions = {
@@ -60,13 +83,13 @@ Shipwire.prototype._newRequestBody = function(options) {
 
 	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\n'
 	requestBody += '<' + options.type + '>\n';
-	requestBody += '<Username>' + this.options.username + '</Username>\n';
-	requestBody += '<Password>' + this.options.password + '</Password>\n';
-	requestBody += '<Server>' + this.options.server + '</Server>\n';
+	requestBody += '\t<Username>' + this.options.username + '</Username>\n';
+	requestBody += '\t<Password>' + this.options.password + '</Password>\n';
+	requestBody += '\t<Server>' + this.options.server + '</Server>\n';
 
 	for (var i = 0; i < options.additionalFields.length; i++) {//forEach instead of for loop?
 		var field = options.additionalFields[i];
-		requestBody += '<' + field.key + '>' + field.value + '</' + field.key + '>';
+		requestBody += '\t<' + field.key + '>' + field.value + '</' + field.key + '>\n';
 
 		//handle booleans?
 	}
@@ -77,7 +100,7 @@ Shipwire.prototype._newRequestBody = function(options) {
 }
 
 Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
-
+	//console.log(requestBody);
 	var responseBody = "";
 	var req = https.request(requestOptions, function(res) {
 		res.setEncoding('utf-8');
@@ -202,6 +225,7 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 }
 
 Shipwire.prototype.inventoryStatus = function(options, next) {
+
 	if (!next) {//if typeof options is a function?
 		next = options;
 		options = {};
@@ -229,7 +253,7 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 
 	if (options.productCodes) {
 		if (Array.isArray(options.productCodes) && options.productCodes.length) {
-			option.productCodes.forEach(function(code) {
+			options.productCodes.forEach(function(code) {
 				requestBodyOptions.additionalFields.push({
 					key: "ProductCode",
 					value: code
@@ -266,13 +290,13 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		}
 
 		parseXML(body, function(err, json) {
-			json = options.multiple ? json : json[0];
-			return next(err, json);
+			//json = options.multiple ? json : json[0];
+			return next(err, json[0]);
 		})
 	});
 
 	//Warehouse: CHI, LAX, PHL, VAN, TOR, UK, or HKG
-	//WarehouseCountry: US, CA, or GB//2-letter ISO-3166-2 code
+	//WarehouseCountry: US, CA, GB, or HK//2-letter ISO-3166-2 code
 	//ProductCode: [SKU]//multiple
 	//IncludeEmpty: Bool
 }
