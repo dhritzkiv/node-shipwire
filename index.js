@@ -8,8 +8,6 @@ function parseXML(string, next) {
 		if (err) {
 			return next(err);
 		}
-		//console.log(result);
-		//console.log(body);
 		if (!result.TrackingUpdateResponse.Order) {
 			return next(null, []);
 		}
@@ -66,9 +64,11 @@ Shipwire.prototype._newRequestBody = function(options) {
 	requestBody += '<Password>' + this.options.password + '</Password>\n';
 	requestBody += '<Server>' + this.options.server + '</Server>\n';
 
-	for (var i = 0; i < options.additionalFields.length; i++) {
+	for (var i = 0; i < options.additionalFields.length; i++) {//forEach instead of for loop?
 		var field = options.additionalFields[i];
 		requestBody += '<' + field.key + '>' + field.value + '</' + field.key + '>';
+
+		//handle booleans?
 	}
 
 	requestBody += '</' + options.type + '>\n';
@@ -200,5 +200,82 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : false;//return just one;
 	return Shipwire.prototype._track.call(this, options, next);
 }
+
+Shipwire.prototype.inventoryStatus = function(options, next) {
+	if (!next) {//if typeof options is a function?
+		next = options;
+		options = {};
+	}
+
+	var requestBodyOptions = {
+		type: "InventoryUpdate"
+	}
+
+	requestBodyOptions.additionalFields = [];
+
+	if (options.warehouse) {
+		requestBodyOptions.additionalFields.push({
+			key: "Warehouse",
+			value: options.warehouse
+		});
+	}
+
+	if (options.warehouseCountry) {
+		requestBodyOptions.additionalFields.push({
+			key: "WarehouseCountry",
+			value: options.warehouseCountry
+		});
+	}
+
+	if (options.productCodes) {
+		if (Array.isArray(options.productCodes) && options.productCodes.length) {
+			option.productCodes.forEach(function(code) {
+				requestBodyOptions.additionalFields.push({
+					key: "ProductCode",
+					value: code
+				});
+			})
+		} else {
+			requestBodyOptions.additionalFields.push({
+				key: "ProductCode",
+				value: options.productCode
+			});
+		}
+	}
+
+	if (options.includeEmpty) {// better term?
+		//if true, all products, even which have never had inventory, will be returned;
+		requestBodyOptions.additionalFields.push({
+			key: "IncludeEmpty",
+			value: true
+		});
+	}
+
+	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
+
+	var requestOptions = this.requestOptions;
+	requestOptions.path = '/exec/InventoryServices.php';
+
+	this._makeRequest(requestOptions, requestBody, function(err, body) {
+		if (err) {
+			return next(err);
+		}
+
+		if (options.raw) {
+			return next(null, body);
+		}
+
+		parseXML(body, function(err, json) {
+			json = options.multiple ? json : json[0];
+			return next(err, json);
+		})
+	});
+
+	//Warehouse: CHI, LAX, PHL, VAN, TOR, UK, or HKG
+	//WarehouseCountry: US, CA, or GB//2-letter ISO-3166-2 code
+	//ProductCode: [SKU]//multiple
+	//IncludeEmpty: Bool
+}
+
 
 module.exports = Shipwire;
