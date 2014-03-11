@@ -4,8 +4,10 @@ var xml2js = require('xml2js');
 var xmlParser = xml2js.Parser();
 
 function parseXML(string, next) {
-//transform XML to JSON and return
 	xmlParser.parseString(string, function (err, result) {
+		if (err) {
+			return next(err);
+		}
 		//console.log(result);
 		//console.log(body);
 		if (!result.TrackingUpdateResponse.Order) {
@@ -97,21 +99,42 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 	req.end();//end request, proceed to response
 }
 
-Shipwire.prototype.trackAll = function(options, next) {
-	if (!next) {//if typeof options is a function?
-		next = options;
-		options = {};
+Shipwire.prototype._track = function(options, next) {
+	options = options || {};
+	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : false;
+	options.bookmark;//1, 2, or 3;
+	options.orderNo;
+	options.id;
+
+
+	var requestBodyOptions = {
+		type: "TrackingUpdate"
+	};
+
+	requestBodyOptions.additionalFields = [];
+
+	if (typeof options.orderNo !== "undefined") {
+		requestBodyOptions.additionalFields.push({
+			key: "OrderNo",
+			value: options.orderNo
+		});
 	}
 
-	var requestBody = this._newRequestBody({
-		type: "TrackingUpdate",
-		additionalFields: [
-			{
-				key: "Bookmark",
-				value: "1"
-			}
-		]
-	});
+	if (typeof options.id !== "undefined") {
+		requestBodyOptions.additionalFields.push({
+			key: "ShipwireId",
+			value: options.id
+		});
+	}
+
+	if (typeof options.bookmark !== "undefined") {
+		requestBodyOptions.additionalFields.push({
+			key: "Bookmark",
+			value: options.bookmark
+		});
+	}
+
+	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
 	var requestOptions = this.requestOptions;
 	requestOptions.path = '/exec/TrackingServices.php';
@@ -126,9 +149,23 @@ Shipwire.prototype.trackAll = function(options, next) {
 		}
 
 		parseXML(body, function(err, json) {
+			json = options.multiple ? json : json[0];
 			return next(err, json);
 		})
-	})
+	});
+
+}
+
+Shipwire.prototype.trackAll = function(options, next) {
+	if (!next) {//if typeof options is a function?
+		next = options;
+		options = {};
+	}
+
+	options.bookmark = options.bookmark || 1;
+	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : true;//return array
+
+	return Shipwire.prototype._track.call(this, options, next);
 }
 
 Shipwire.prototype.trackById = function(id, options, next) {
@@ -142,36 +179,9 @@ Shipwire.prototype.trackById = function(id, options, next) {
 		options = {};
 	}
 
-	var requestBody = this._newRequestBody({
-		type: "TrackingUpdate",
-		additionalFields: [
-			{
-				key: "ShipwireId",
-				value: id
-			}
-		]
-	});
-
-	var requestOptions = this.requestOptions;
-	requestOptions.path = '/exec/TrackingServices.php';
-
-	this._makeRequest(requestOptions, requestBody, function(err, body) {
-		if (err) {
-			return next(err);
-		}
-
-		if (options.raw) {
-			return next(null, body);
-		}
-
-		//transform XML to JSON and return
-		parseXML(body, function(err, json) {
-			if (json) {
-				return next(err, json[0]);
-			}
-			return next(err, null);
-		})
-	})
+	options.id = id;
+	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : false;//return just one;
+	return Shipwire.prototype._track.call(this, options, next);
 }
 
 
@@ -186,54 +196,9 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 		options = {};
 	}
 
-	var requestBody = this._newRequestBody({
-		type: "TrackingUpdate",
-		additionalFields: [
-			{
-				key: "OrderNo",
-				value: id
-			}
-		]
-	});
-
-	var requestOptions = this.requestOptions;
-	requestOptions.path = '/exec/TrackingServices.php';
-
-	this._makeRequest(requestOptions, requestBody, function(err, body) {
-		if (err) {
-			return next(err);
-		}
-
-		if (options.raw) {
-			return next(null, body);
-		}
-
-		//transform XML to JSON and return
-		parseXML(body, function(err, json) {
-			if (json) {
-				return next(err, json[0]);
-			}
-			return next(err, null);
-		})
-	})
+	options.orderNo = id;
+	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : false;//return just one;
+	return Shipwire.prototype._track.call(this, options, next);
 }
-
-/*function shipwireRequest(next) {
-
-
-	var body = '<?xml version="1.0" encoding="UTF-8"?>\
-	<!DOCTYPE TrackingUpdate SYSTEM "http://www.shipwire.com/exec/download/TrackingUpdate.dtd">\
-	<TrackingUpdate>\
-		<Username>daniel.hritzkiv@gmail.com</Username>\
-		<Password>rTh-B4h-aSA-f6y</Password>\
-		<Server>Production</Server>\
-		<OrderNo>85</OrderNo>\
-	</TrackingUpdate>';
-
-	//<Bookmark>1</Bookmark>\ //1: all results, 2: since last time, 3: since last time + reset to start
-
-
-
-}*/
 
 module.exports = Shipwire;
