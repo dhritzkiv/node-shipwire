@@ -136,7 +136,7 @@ Currently, the library isn't very feature rich or mature. If you'd like to offer
 4. Push the branch `git push origin feature-name`
 5. Create a pull request
 
-* Prior to a commit, linting and testing will be performed.
+\* Prior to a commit, linting and testing will be performed.
 
 
 ##Contact
