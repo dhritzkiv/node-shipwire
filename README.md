@@ -12,7 +12,7 @@ Node.js library to communicate with the Shipwire API
 
 ###Upcoming
 
-– Rate Quotes
+- Rate Quotes
 - Fulfillment Services
 
 
