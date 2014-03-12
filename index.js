@@ -29,6 +29,8 @@ function parseXML(string, next) {
 				}
 				return thisOrder;
 			});
+			
+			//parse dates. using moment?
 
 			next(null, orders);
 		}
@@ -91,9 +93,12 @@ Shipwire.prototype._newRequestBody = function(options) {
 
 	for (var i = 0; i < options.additionalFields.length; i++) {//forEach instead of for loop?
 		var field = options.additionalFields[i];
-		requestBody += '\t<' + field.key + '>' + field.value + '</' + field.key + '>\n';
-
-		//handle booleans?
+		
+		if (field.value === true || field.value === false) {//strict true, or strict false
+			requestBody += '\t<' + field.key + '/>\n';//self closing tag;
+		} else {
+			requestBody += '\t<' + field.key + '>' + field.value + '</' + field.key + '>\n';
+		}
 	}
 
 	requestBody += '</' + options.type + '>\n';
@@ -245,14 +250,14 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 	if (options.warehouse) {
 		requestBodyOptions.additionalFields.push({
 			key: "Warehouse",
-			value: options.warehouse
+			value: options.warehouse //Warehouse: CHI, LAX, PHL, VAN, TOR, UK, or HKG
 		});
 	}
 
 	if (options.warehouseCountry) {
 		requestBodyOptions.additionalFields.push({
 			key: "WarehouseCountry",
-			value: options.warehouseCountry
+			value: options.warehouseCountry //WarehouseCountry: US, CA, GB, or HK//2-letter ISO-3166-2 code
 		});
 	}
 
@@ -261,7 +266,7 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 			options.productCodes.forEach(function(code) {
 				requestBodyOptions.additionalFields.push({
 					key: "ProductCode",
-					value: code
+					value: code //ProductCode: [SKU]//multiple
 				});
 			})
 		} else {
@@ -276,7 +281,7 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		//if true, all products, even which have never had inventory, will be returned;
 		requestBodyOptions.additionalFields.push({
 			key: "IncludeEmpty",
-			value: true
+			value: true //IncludeEmpty: Boolean
 		});
 	}
 
@@ -299,11 +304,6 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 			return next(err, json);
 		})
 	});
-
-	//Warehouse: CHI, LAX, PHL, VAN, TOR, UK, or HKG
-	//WarehouseCountry: US, CA, GB, or HK//2-letter ISO-3166-2 code
-	//ProductCode: [SKU]//multiple
-	//IncludeEmpty: Bool
 }
 
 

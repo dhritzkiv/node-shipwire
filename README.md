@@ -9,6 +9,7 @@ Node.js library to communicate with the Shipwire API
 
 - Order Tracking and Status
 - Inventory
+– Conversion of XML responses to JSON (using [xml2js](https://github.com/Leonidas-from-XIV/node-xml2js))
 
 ###Upcoming
 

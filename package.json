@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "description": "Node library to communicate with the Shipwire API",
   "main": "index.js",
-  "private": true,
+  "private": false,
   "scripts": {
     "test": "mocha --reporter list --growl"
   },
@@ -12,9 +12,14 @@
     "shipping",
     "rate",
     "orders",
-    "tracking"
+    "tracking",
+    "inventory"
   ],
-  "author": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
+  "author": {
+  	"name": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
+  	"email": "daniel.hritzkiv@gmail.com",
+  	"url": "http://danielhritzkiv.com/"
+  },
   "license": "BSD",
   "repository": {
     "type": "git",

@@ -238,7 +238,17 @@ describe('Shipwire', function(){
 				productCodes: "sun-0001",
 				raw: true
 			}, function(err, products) {
-				assert.equal(true, !!products);
+				assert.equal(true, !!products && /^<\?xml/g.test(products));
+				done();
+			})
+		});
+		
+		it('should return all products, even those without any inventory, and format should be XML string', function(done) {
+			shipwire.inventoryStatus({
+				includeEmpty: true,
+				raw: true
+			}, function(err, products) {
+				assert.equal(true, !!products && /^<\?xml/g.test(products));
 				done();
 			})
 		});
