@@ -1,42 +1,42 @@
 {
-	"name": "node-shipwire",
-	"version": "0.0.5",
-	"description": "Node library to communicate with the Shipwire API",
-	"main": "index.js",
-	"private": false,
-	"scripts": {
-		"test": "mocha --reporter spec"
-	},
-	"config": {
-		"precommit": {
-			"lint": true,
-			"validate": false,
-			"test": "npm test"
-		}
-	},
-	"keywords": [
-		"shipwire",
-		"shipping",
-		"rate",
-		"orders",
-		"tracking",
-		"inventory"
-	],
-	"author": {
-		"name": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
-		"email": "daniel.hritzkiv@gmail.com",
-		"url": "http://danielhritzkiv.com/"
-	},
-	"license": "BSD",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/dhritzkiv/node-shipwire.git"
-	},
-	"dependencies": {
-		"xml2js": "^0.4.1"
-	},
-	"devDependencies": {
-		"mocha": "^1.17.1",
-		"precommit-hook": "^0.3.10"
-	}
+  "name": "node-shipwire",
+  "version": "0.0.6",
+  "description": "Node library to communicate with the Shipwire API",
+  "main": "index.js",
+  "private": false,
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "config": {
+    "precommit": {
+      "lint": true,
+      "validate": false,
+      "test": "npm test"
+    }
+  },
+  "keywords": [
+    "shipwire",
+    "shipping",
+    "rate",
+    "orders",
+    "tracking",
+    "inventory"
+  ],
+  "author": {
+    "name": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
+    "email": "daniel.hritzkiv@gmail.com",
+    "url": "http://danielhritzkiv.com/"
+  },
+  "license": "BSD",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhritzkiv/node-shipwire.git"
+  },
+  "dependencies": {
+    "xml2js": "^0.4.1"
+  },
+  "devDependencies": {
+    "mocha": "^1.17.1",
+    "precommit-hook": "^0.3.10"
+  }
 }
