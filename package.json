@@ -1,6 +1,6 @@
 {
   "name": "node-shipwire",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Node library to communicate with the Shipwire API",
   "main": "index.js",
   "private": true,
@@ -17,8 +17,8 @@
   "author": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
   "license": "BSD",
   "repository": {
-	"type": "git",
-	"url": "https://github.com/dhritzkiv/node-shipwire.git"
+    "type": "git",
+    "url": "https://github.com/dhritzkiv/node-shipwire.git"
   },
   "dependencies": {
     "xml2js": "^0.4.1"
