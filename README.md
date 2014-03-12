@@ -3,12 +3,14 @@ node-shipwire
 
 Node.js library to communicate with the Shipwire API
 
-##Features as of 0.0.3
+##Features
+
+###Current
 
 - Order Tracking and Status
 - Inventory
 
-##Upcoming features
+###Upcoming
 
 – Rate Quotes
 - Fulfillment Services
