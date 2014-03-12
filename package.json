@@ -1,6 +1,6 @@
 {
   "name": "node-shipwire",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Node library to communicate with the Shipwire API",
   "main": "index.js",
   "private": false,
@@ -16,9 +16,9 @@
     "inventory"
   ],
   "author": {
-  	"name": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
-  	"email": "daniel.hritzkiv@gmail.com",
-  	"url": "http://danielhritzkiv.com/"
+    "name": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
+    "email": "daniel.hritzkiv@gmail.com",
+    "url": "http://danielhritzkiv.com/"
   },
   "license": "BSD",
   "repository": {
