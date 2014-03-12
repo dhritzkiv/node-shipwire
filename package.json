@@ -16,6 +16,10 @@
   ],
   "author": "Daniel Hritzkiv <daniel.hritzkiv@gmail.com>",
   "license": "BSD",
+  "repository": {
+	"type": "git",
+	"url": "https://github.com/dhritzkiv/node-shipwire.git"
+  },
   "dependencies": {
     "xml2js": "^0.4.1"
   }

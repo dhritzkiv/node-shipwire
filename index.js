@@ -50,14 +50,16 @@ function parseXML(string, next) {
 	});
 }
 
-function Shipwire(options) {
+function Shipwire(username, password, options) {
 
-	if (!options) {
+	if (!username || !password) {
 		throw new Error("Options not supplied for Shipwire");
 	}
+	
+	this.username = username;
+	this.password = password;
 
-	options.username;
-	options.password;
+	options = options || {};
 	options.test = options.test || false;
 	options.server = options.test ? "Test" : "Production"; //Test or Production, default to production
 	options.sandbox = typeof options.sandbox != "undefined" ? !!options.sandbox : false;
@@ -83,8 +85,8 @@ Shipwire.prototype._newRequestBody = function(options) {
 
 	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\n'
 	requestBody += '<' + options.type + '>\n';
-	requestBody += '\t<Username>' + this.options.username + '</Username>\n';
-	requestBody += '\t<Password>' + this.options.password + '</Password>\n';
+	requestBody += '\t<Username>' + this.username + '</Username>\n';
+	requestBody += '\t<Password>' + this.password + '</Password>\n';
 	requestBody += '\t<Server>' + this.options.server + '</Server>\n';
 
 	for (var i = 0; i < options.additionalFields.length; i++) {//forEach instead of for loop?
@@ -230,6 +232,9 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		next = options;
 		options = {};
 	}
+	
+	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : true;
+	options.raw = options.raw || false;
 
 	var requestBodyOptions = {
 		type: "InventoryUpdate"
@@ -290,8 +295,8 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		}
 
 		parseXML(body, function(err, json) {
-			//json = options.multiple ? json : json[0];
-			return next(err, json[0]);
+			json = options.multiple ? json : json[0];
+			return next(err, json);
 		})
 	});
 
