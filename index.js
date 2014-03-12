@@ -1,3 +1,5 @@
+"use strict";
+
 var https = require('https');
 
 var xml2js = require('xml2js');
@@ -18,18 +20,18 @@ function parseXML(string, next) {
 			}
 
 			orders = orders.map(function(order) {
-				var thisOrder = order["$"];
+				var thisOrder = order.$;
 				if (order.TrackingNumber) {
 					order.TrackingNumber = order.TrackingNumber.map(function(item) {
-						var thisTrackingNumber = item["$"];
-						thisTrackingNumber.trackingNumber = item["_"].replace(/[^a-zA-Z0-9\-\_]/g, "");
+						var thisTrackingNumber = item.$;
+						thisTrackingNumber.trackingNumber = item._.replace(/[^a-zA-Z0-9\-\_]/g, "");
 						return thisTrackingNumber;
-					})
+					});
 					thisOrder.trackingNumber = order.TrackingNumber[0];
 				}
 				return thisOrder;
 			});
-			
+
 			//parse dates. using moment?
 
 			next(null, orders);
@@ -42,7 +44,7 @@ function parseXML(string, next) {
 				return next(null, []);
 			}
 			products = products.map(function(product) {
-				var thisProduct = product["$"];
+				var thisProduct = product.$;
 				return thisProduct;
 			});
 
@@ -57,7 +59,7 @@ function Shipwire(username, password, options) {
 	if (!username || !password) {
 		throw new Error("Options not supplied for Shipwire");
 	}
-	
+
 	this.username = username;
 	this.password = password;
 
@@ -72,7 +74,7 @@ function Shipwire(username, password, options) {
 		headers: {
 			"Content-Type": "application/xml"
 		}
-	}
+	};
 
 	requestOptions.host = options.sandbox ? 'api.beta.shipwire.com' : 'api.shipwire.com';
 
@@ -85,7 +87,7 @@ function Shipwire(username, password, options) {
 Shipwire.prototype._newRequestBody = function(options) {
 	var requestBody = '<?xml version="1.0" encoding="UTF-8"?>\n';
 
-	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\n'
+	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\n';
 	requestBody += '<' + options.type + '>\n';
 	requestBody += '\t<Username>' + this.username + '</Username>\n';
 	requestBody += '\t<Password>' + this.password + '</Password>\n';
@@ -93,7 +95,7 @@ Shipwire.prototype._newRequestBody = function(options) {
 
 	for (var i = 0; i < options.additionalFields.length; i++) {//forEach instead of for loop?
 		var field = options.additionalFields[i];
-		
+
 		if (field.value === true || field.value === false) {//strict true, or strict false
 			requestBody += '\t<' + field.key + '/>\n';//self closing tag;
 		} else {
@@ -104,7 +106,7 @@ Shipwire.prototype._newRequestBody = function(options) {
 	requestBody += '</' + options.type + '>\n';
 
 	return requestBody;
-}
+};
 
 Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 	//console.log(requestBody);
@@ -113,29 +115,25 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 		res.setEncoding('utf-8');
 		res.on('data', function(chunk) {
 			responseBody += chunk;
-		})
+		});
 
 		res.on('end', function() {
 			next(null, responseBody);
-		})
-	})
+		});
+	});
 
 	req.on('error', function(err) {
 		console.log('http req error: ' + err.message || err);
 		return next(err);
-	})
+	});
 
 	req.write(requestBody);
 	req.end();//end request, proceed to response
-}
+};
 
 Shipwire.prototype._track = function(options, next) {
-	options = options || {};
-	//options._multiple = options._multiple;
-	options.bookmark;//1, 2, or 3;
-	options.orderNo;
-	options.id;
 
+	options = options || {};
 
 	var requestBodyOptions = {
 		type: "TrackingUpdate"
@@ -181,10 +179,10 @@ Shipwire.prototype._track = function(options, next) {
 		parseXML(body, function(err, json) {
 			json = options._multiple ? json : json[0];
 			return next(err, json);
-		})
+		});
 	});
 
-}
+};
 
 Shipwire.prototype.trackAll = function(options, next) {
 	if (!next) {//if typeof options is a function?
@@ -196,12 +194,12 @@ Shipwire.prototype.trackAll = function(options, next) {
 	options._multiple = true;//return array
 
 	return Shipwire.prototype._track.call(this, options, next);
-}
+};
 
 Shipwire.prototype.trackById = function(id, options, next) {
 
 	if (!id || typeof id !== "string") {//use arguments.length?
-		throw new Error("No ID provided.")
+		throw new Error("No ID provided.");
 	}
 
 	if (!next) {//if typeof options is a function?
@@ -212,13 +210,12 @@ Shipwire.prototype.trackById = function(id, options, next) {
 	options.id = id;
 	options._multiple = false;//return just one;
 	return Shipwire.prototype._track.call(this, options, next);
-}
-
+};
 
 Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 
 	if (!id || typeof id !== "string") {
-		throw new Error("No ID provided.")
+		throw new Error("No ID provided.");
 	}
 
 	if (!next) {//if typeof options is a function?
@@ -229,7 +226,7 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 	options.orderNo = id;
 	options._multiple = false;//return just one;
 	return Shipwire.prototype._track.call(this, options, next);
-}
+};
 
 Shipwire.prototype.inventoryStatus = function(options, next) {
 
@@ -237,13 +234,13 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		next = options;
 		options = {};
 	}
-	
+
 	options._multiple = true;
 	options.raw = options.raw || false;
 
 	var requestBodyOptions = {
 		type: "InventoryUpdate"
-	}
+	};
 
 	requestBodyOptions.additionalFields = [];
 
@@ -266,9 +263,9 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 			options.productCodes.forEach(function(code) {
 				requestBodyOptions.additionalFields.push({
 					key: "ProductCode",
-					value: code //ProductCode: [SKU]//multiple
+					value: code
 				});
-			})
+			});
 		} else {
 			requestBodyOptions.additionalFields.push({
 				key: "ProductCode",
@@ -302,9 +299,8 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		parseXML(body, function(err, json) {
 			json = options._multiple ? json : json[0];
 			return next(err, json);
-		})
+		});
 	});
-}
-
+};
 
 module.exports = Shipwire;
