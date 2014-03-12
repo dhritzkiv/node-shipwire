@@ -126,7 +126,7 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 
 Shipwire.prototype._track = function(options, next) {
 	options = options || {};
-	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : false;
+	//options._multiple = options._multiple;
 	options.bookmark;//1, 2, or 3;
 	options.orderNo;
 	options.id;
@@ -174,7 +174,7 @@ Shipwire.prototype._track = function(options, next) {
 		}
 
 		parseXML(body, function(err, json) {
-			json = options.multiple ? json : json[0];
+			json = options._multiple ? json : json[0];
 			return next(err, json);
 		})
 	});
@@ -188,14 +188,14 @@ Shipwire.prototype.trackAll = function(options, next) {
 	}
 
 	options.bookmark = options.bookmark || 1;
-	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : true;//return array
+	options._multiple = true;//return array
 
 	return Shipwire.prototype._track.call(this, options, next);
 }
 
 Shipwire.prototype.trackById = function(id, options, next) {
 
-	if (!id) {
+	if (!id || typeof id !== "string") {//use arguments.length?
 		throw new Error("No ID provided.")
 	}
 
@@ -205,14 +205,14 @@ Shipwire.prototype.trackById = function(id, options, next) {
 	}
 
 	options.id = id;
-	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : false;//return just one;
+	options._multiple = false;//return just one;
 	return Shipwire.prototype._track.call(this, options, next);
 }
 
 
 Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 
-	if (!id) {
+	if (!id || typeof id !== "string") {
 		throw new Error("No ID provided.")
 	}
 
@@ -222,7 +222,7 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 	}
 
 	options.orderNo = id;
-	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : false;//return just one;
+	options._multiple = false;//return just one;
 	return Shipwire.prototype._track.call(this, options, next);
 }
 
@@ -233,7 +233,7 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		options = {};
 	}
 	
-	options.multiple = typeof options.multiple !== "undefined" ? options.multiple : true;
+	options._multiple = true;
 	options.raw = options.raw || false;
 
 	var requestBodyOptions = {
@@ -267,7 +267,7 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		} else {
 			requestBodyOptions.additionalFields.push({
 				key: "ProductCode",
-				value: options.productCode
+				value: options.productCodes
 			});
 		}
 	}
@@ -295,7 +295,7 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		}
 
 		parseXML(body, function(err, json) {
-			json = options.multiple ? json : json[0];
+			json = options._multiple ? json : json[0];
 			return next(err, json);
 		})
 	});
