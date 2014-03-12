@@ -132,7 +132,7 @@ Currently, the library isn't very feature rich or mature. If you'd like to offer
 
 1. Fork it
 2. Create your feature branch `git checkout -b feature-name`
-3. Commit your changes `git commit -am 'Add feature'` *
+3. Commit your changes `git commit -am 'Add feature'` \*
 4. Push the branch `git push origin feature-name`
 5. Create a pull request
 
