@@ -56,7 +56,7 @@ function parseXML(string, next) {
 
 function Shipwire(username, password, options) {
 
-	if (!username || !password) {
+	if (!username || typeof username !== "string" || !password || typeof password !== "string") {
 		throw new Error("Options not supplied for Shipwire");
 	}
 

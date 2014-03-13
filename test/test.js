@@ -15,6 +15,33 @@ var maxTimeout = 1e4;//10 seconds
 var slowTime = 1e3;
 
 describe('Shipwire', function() {
+
+	describe("New Shipwire instance", function() {
+		it('should throw an error when username and/or passwords are missing', function() {
+			assert.throws(function() {
+				new Shipwire();
+			}, Error);
+
+			assert.throws(function() {
+				new Shipwire({
+					test: false,
+					sandbox: true
+				});
+			}, Error);
+
+			assert.throws(function() {
+				new Shipwire("username");
+			}, Error);
+
+			assert.throws(function() {
+				new Shipwire("username", {
+					test: false,
+					sandbox: true
+				});
+			}, Error);
+		});
+	});
+
 	describe('#trackAll()', function() {
 		this.timeout(maxTimeout);
 		this.slow(slowTime);
@@ -133,7 +160,7 @@ describe('Shipwire', function() {
 		this.timeout(maxTimeout);
 		this.slow(slowTime);
 
-		it('should return an inventory status', function(done) {
+		it('should return an array of products', function(done) {
 			shipwire.inventoryStatus(function(err, products) {
 				assert.equal(true, products && Array.isArray(products) && products.length > 0);
 				done();
@@ -149,7 +176,7 @@ describe('Shipwire', function() {
 			});
 		});
 
-		it('should return products from US warehouses', function(done) {
+		it('should return an array of products from US warehouses', function(done) {
 			shipwire.inventoryStatus({
 				warehouseCountry: "US"
 			}, function(err, products) {
@@ -167,7 +194,7 @@ describe('Shipwire', function() {
 			})
 		});*///for some reason, if a product hasn't arrived at a particular warehouse, a particular query for that warehouse won't return the product (despite other queries for that product including that warehouse as a property of the product);
 
-		it('should return products based on array of SKUs', function(done) {
+		it('should return an array of products based on array of SKUs', function(done) {
 			shipwire.inventoryStatus({
 				productCodes: ["sun-0001"]
 			}, function(err, products) {
@@ -176,7 +203,7 @@ describe('Shipwire', function() {
 			});
 		});
 
-		it('should return products based on array of SKUs and warehouseCountry string', function(done) {
+		it('should return an array of products based on array of SKUs and warehouseCountry string', function(done) {
 			shipwire.inventoryStatus({
 				productCodes: ["sun-0001"],
 				warehouseCountry: "US"
@@ -186,7 +213,7 @@ describe('Shipwire', function() {
 			});
 		});
 
-		it('should return products based on single SKUs as string', function(done) {
+		it('should return an array of products based on single SKUs as string', function(done) {
 			shipwire.inventoryStatus({
 				productCodes: "sun-0001"
 			}, function(err, products) {
