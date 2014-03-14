@@ -6,6 +6,7 @@ var xml2js = require('xml2js');
 var xmlParser = xml2js.Parser();
 
 function parseXML(string, next) {
+
 	xmlParser.parseString(string, function (err, result) {
 		if (err) {
 			return next(err);
@@ -21,6 +22,32 @@ function parseXML(string, next) {
 
 			orders = orders.map(function(order) {
 				var thisOrder = order.$;
+
+				for (var key in thisOrder) {
+					if (thisOrder.hasOwnProperty(key)) {
+						var thisKey = thisOrder[key];
+
+						var dateMatch = thisKey.match(/(\d{4})\-(\d{2})\-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/);//"YYYY-MM-DD HH:MM:SS"
+						if (dateMatch) {
+							dateMatch.splice(0, 1);//disregard the fully matched string, return only matched groups
+							dateMatch = dateMatch.map(function(number) {
+								return number|0;//numbers as strings to integers
+							});
+							--dateMatch[1];//decrease month value, as JS months start at 0;
+							var NewDate = Date.bind.apply(Date, [null].concat(dateMatch));
+							thisKey = new NewDate();//new Date from array
+						}
+
+						if (thisKey === "NO" || thisKey === "FALSE") {
+							thisKey = false;
+						} else if (thisKey === "YES" || thisKey === "TRUE") {
+							thisKey = true;
+						}
+
+						thisOrder[key] = thisKey;
+					}
+				}
+
 				if (order.TrackingNumber) {
 					order.TrackingNumber = order.TrackingNumber.map(function(item) {
 						var thisTrackingNumber = item.$;
@@ -31,8 +58,6 @@ function parseXML(string, next) {
 				}
 				return thisOrder;
 			});
-
-			//parse dates. using moment?
 
 			next(null, orders);
 		}
@@ -57,7 +82,7 @@ function parseXML(string, next) {
 function Shipwire(username, password, options) {
 
 	if (!username || typeof username !== "string" || !password || typeof password !== "string") {
-		throw new Error("Options not supplied for Shipwire");
+		throw new Error("Credentials not supplied for Shipwire");
 	}
 
 	this.username = username;

@@ -1,18 +1,29 @@
 "use strict";
 
 var assert = require("assert");
+var fs = require('fs');
+
+var expectedTestResponse = JSON.parse(fs.readFileSync(__dirname + "/expectedTestCall.json"));
+
+var username = "daniel.hritzkiv@gmail.com";
+var password = "rTh-B4h-aSA-f6y";
 
 var Shipwire = require("../index.js");//node-shipwire;
-var shipwire = new Shipwire("daniel.hritzkiv@gmail.com", "rTh-B4h-aSA-f6y", {
+var shipwire = new Shipwire(username, password, {
 	sandbox: true,//beta or real life
 	test: false
+});
+
+var shipwireTest = new Shipwire(username, password, {
+	sandbox: true,
+	test: true
 });
 
 var validOrderNumber = "21";//String, please.
 var validShipwireID = "1394587839-108974-1";
 
 var maxTimeout = 1e4;//10 seconds
-var slowTime = 1e3;
+var slowTime = 1e3;//1 second
 
 describe('Shipwire', function() {
 
@@ -151,6 +162,46 @@ describe('Shipwire', function() {
 				raw: true
 			}, function(err, order) {
 				assert.equal(true, /^<\?xml/g.test(order));//object and not an array;
+				done();
+			});
+		});
+	});
+
+	describe('xmlParsing', function() {
+		this.timeout(maxTimeout);
+		this.slow(slowTime);
+
+		it('should match expected results from test call', function(done) {
+
+			shipwireTest.trackAll(function(err, orders) {
+				assert.deepEqual(JSON.stringify(orders), JSON.stringify(expectedTestResponse));
+				done();
+			});
+		});
+
+		it('should be create Booleans from "NO", "YES", "TRUE", "FALSE"', function(done) {
+			shipwireTest.trackAll(function(err, orders) {
+				var containsBoolean = false;
+				for (var key in orders[0]) {
+					if (orders[0].hasOwnProperty(key)) {
+						containsBoolean = typeof orders[0][key] === "boolean" ? true : containsBoolean;
+					}
+				}
+
+				assert.equal(true, containsBoolean);
+				done();
+			});
+		});
+
+		it('should contain a date', function(done) {
+			shipwireTest.trackAll(function(err, orders) {
+				var containsDate = false;
+
+				for (var key in orders[0]) {
+					containsDate = orders[0][key] instanceof Date ? true : containsDate;
+				}
+
+				assert.equal(true, containsDate);
 				done();
 			});
 		});
