@@ -243,7 +243,7 @@ describe('Shipwire', function() {
 				assert.equal(true, products && Array.isArray(products) && products.length > 0);
 				done();
 			})
-		});*///for some reason, if a product hasn't arrived at a particular warehouse, a particular query for that warehouse won't return the product (despite other queries for that product including that warehouse as a property of the product);
+		});*///for some reason, querying a particular warehouse does not work, despite items showing as at the warehouse in the online dashboard. Also, querying by WarehouseCountry
 
 		it('should return an array of products based on array of SKUs', function(done) {
 			shipwire.inventoryStatus({
@@ -273,24 +273,23 @@ describe('Shipwire', function() {
 			});
 		});
 
-		it('should return products based on single SKUs as string, and format should be XML string', function(done) {
+		it('should return all products, even those without any inventory', function(done) {
 			shipwire.inventoryStatus({
-				productCodes: "sun-0001",
-				raw: true
+				includeEmpty: true,
 			}, function(err, products) {
-				assert.equal(true, !!products && /^<\?xml/g.test(products));
+				assert.equal(true, products && Array.isArray(products) && products.length > 0);
 				done();
 			});
 		});
 
-		it('should return all products, even those without any inventory, and format should be XML string', function(done) {
+		/*it('should return products based on single SKUs as string, and warehouse', function(done) {
 			shipwire.inventoryStatus({
-				includeEmpty: true,
-				raw: true
+				warehouse: "TOR"
 			}, function(err, products) {
-				assert.equal(true, !!products && /^<\?xml/g.test(products));
+				console.log(products)
+				assert.equal(true, products && Array.isArray(products) && products.length > 0);
 				done();
 			});
-		});
+		});*/
 	});
 });

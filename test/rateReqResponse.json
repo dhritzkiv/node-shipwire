@@ -1,0 +1,498 @@
+[
+	[
+		{
+			"$": {
+				"method": "GD"
+			},
+			"Warehouse": [
+				"Toronto"
+			],
+			"Service": [
+				{
+					"_": "Purolator Express",
+					"$": {
+						"deliveryConfirmation": "YES",
+						"trackable": "YES",
+						"signatureRequired": "NO"
+					}
+				}
+			],
+			"CarrierCode": [
+				"PUR XP"
+			],
+			"Cost": [
+				{
+					"_": "11.89",
+					"$": {
+						"currency": "USD",
+						"converted": "NO",
+						"originalCurrency": "USD",
+						"originalCost": "11.89"
+					}
+				}
+			],
+			"Subtotals": [
+				{
+					"Subtotal": [
+						{
+							"$": {
+								"type": "Freight"
+							},
+							"Cost": [
+								{
+									"_": "11.14",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "11.14"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Insurance"
+							},
+							"Cost": [
+								{
+									"_": "0.75",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.75"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Packaging"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Handling",
+								"includedInCost": "NO"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						}
+					]
+				}
+			],
+			"DeliveryEstimate": [
+				{
+					"Minimum": [
+						{
+							"_": "1",
+							"$": {
+								"units": "days"
+							}
+						}
+					],
+					"Maximum": [
+						{
+							"_": "2",
+							"$": {
+								"units": "days"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"$": {
+				"method": "1D"
+			},
+			"Warehouse": [
+				"Toronto"
+			],
+			"Service": [
+				{
+					"_": "FedEx Priority Overnight",
+					"$": {
+						"deliveryConfirmation": "YES",
+						"trackable": "YES",
+						"signatureRequired": "NO"
+					}
+				}
+			],
+			"CarrierCode": [
+				"FDX 1DP"
+			],
+			"Cost": [
+				{
+					"_": "32.91",
+					"$": {
+						"currency": "USD",
+						"converted": "NO",
+						"originalCurrency": "USD",
+						"originalCost": "32.91"
+					}
+				}
+			],
+			"Subtotals": [
+				{
+					"Subtotal": [
+						{
+							"$": {
+								"type": "Freight"
+							},
+							"Cost": [
+								{
+									"_": "32.91",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "32.91"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Insurance"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Packaging"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Handling",
+								"includedInCost": "NO"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						}
+					]
+				}
+			],
+			"DeliveryEstimate": [
+				{
+					"Minimum": [
+						{
+							"_": "1",
+							"$": {
+								"units": "days"
+							}
+						}
+					],
+					"Maximum": [
+						{
+							"_": "1",
+							"$": {
+								"units": "days"
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	[
+		{
+			"$": {
+				"method": "INTL"
+			},
+			"Warehouse": [
+				"LA"
+			],
+			"Service": [
+				{
+					"_": "UPS Standard",
+					"$": {
+						"deliveryConfirmation": "YES",
+						"trackable": "YES",
+						"signatureRequired": "NO"
+					}
+				}
+			],
+			"CarrierCode": [
+				"UPS ST"
+			],
+			"Cost": [
+				{
+					"_": "24.13",
+					"$": {
+						"currency": "USD",
+						"converted": "NO",
+						"originalCurrency": "USD",
+						"originalCost": "24.13"
+					}
+				}
+			],
+			"Subtotals": [
+				{
+					"Subtotal": [
+						{
+							"$": {
+								"type": "Freight"
+							},
+							"Cost": [
+								{
+									"_": "24.13",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "24.13"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Insurance"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Packaging"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Handling",
+								"includedInCost": "NO"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						}
+					]
+				}
+			],
+			"DeliveryEstimate": [
+				{
+					"Minimum": [
+						{
+							"_": "1",
+							"$": {
+								"units": "days"
+							}
+						}
+					],
+					"Maximum": [
+						{
+							"_": "5",
+							"$": {
+								"units": "days"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"$": {
+				"method": "PL-INTL"
+			},
+			"Warehouse": [
+				"LA"
+			],
+			"Service": [
+				{
+					"_": "USPS Express Mail International",
+					"$": {
+						"deliveryConfirmation": "YES",
+						"trackable": "YES",
+						"signatureRequired": "NO"
+					}
+				}
+			],
+			"CarrierCode": [
+				"USPS EMI"
+			],
+			"Cost": [
+				{
+					"_": "46.66",
+					"$": {
+						"currency": "USD",
+						"converted": "NO",
+						"originalCurrency": "USD",
+						"originalCost": "46.66"
+					}
+				}
+			],
+			"Subtotals": [
+				{
+					"Subtotal": [
+						{
+							"$": {
+								"type": "Freight"
+							},
+							"Cost": [
+								{
+									"_": "46.66",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "46.66"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Insurance"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Packaging"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						},
+						{
+							"$": {
+								"type": "Handling",
+								"includedInCost": "NO"
+							},
+							"Cost": [
+								{
+									"_": "0.00",
+									"$": {
+										"currency": "USD",
+										"converted": "NO",
+										"originalCurrency": "USD",
+										"originalCost": "0.00"
+									}
+								}
+							]
+						}
+					]
+				}
+			],
+			"DeliveryEstimate": [
+				{
+					"Minimum": [
+						{
+							"_": "3",
+							"$": {
+								"units": "days"
+							}
+						}
+					],
+					"Maximum": [
+						{
+							"_": "5",
+							"$": {
+								"units": "days"
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+]

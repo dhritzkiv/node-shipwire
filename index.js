@@ -5,79 +5,11 @@ var https = require('https');
 var xml2js = require('xml2js');
 var xmlParser = xml2js.Parser();
 
-function parseXML(string, next) {
-
-	xmlParser.parseString(string, function (err, result) {
-		if (err) {
-			return next(err);
-		}
-
-		if (result.TrackingUpdateResponse) {
-
-			var orders = result.TrackingUpdateResponse.Order;
-
-			if (!orders || !orders.length) { //array of orders;
-				return next(null, []);
-			}
-
-			orders = orders.map(function(order) {
-				var thisOrder = order.$;
-
-				for (var key in thisOrder) {
-					if (thisOrder.hasOwnProperty(key)) {
-						var thisKey = thisOrder[key];
-
-						var dateMatch = thisKey.match(/(\d{4})\-(\d{2})\-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/);//"YYYY-MM-DD HH:MM:SS"
-						if (dateMatch) {
-							dateMatch.splice(0, 1);//disregard the fully matched string, return only matched groups
-							dateMatch = dateMatch.map(function(number) {
-								return number|0;//numbers as strings to integers
-							});
-							--dateMatch[1];//decrease month value, as JS months start at 0;
-							var NewDate = Date.bind.apply(Date, [null].concat(dateMatch));
-							thisKey = new NewDate();//new Date from array
-						}
-
-						if (thisKey === "NO" || thisKey === "FALSE") {
-							thisKey = false;
-						} else if (thisKey === "YES" || thisKey === "TRUE") {
-							thisKey = true;
-						}
-
-						thisOrder[key] = thisKey;
-					}
-				}
-
-				if (order.TrackingNumber) {
-					order.TrackingNumber = order.TrackingNumber.map(function(item) {
-						var thisTrackingNumber = item.$;
-						thisTrackingNumber.trackingNumber = item._.replace(/[^a-zA-Z0-9\-\_]/g, "");
-						return thisTrackingNumber;
-					});
-					thisOrder.trackingNumber = order.TrackingNumber[0];
-				}
-				return thisOrder;
-			});
-
-			next(null, orders);
-		}
-
-		if (result.InventoryUpdateResponse) {
-			var products = result.InventoryUpdateResponse.Product;
-
-			if (!products || !products.length) {
-				return next(null, []);
-			}
-			products = products.map(function(product) {
-				var thisProduct = product.$;
-				return thisProduct;
-			});
-
-			next(null, products);
-		}
-
-	});
-}
+/*
+===========
+Constructor
+===========
+*/
 
 function Shipwire(username, password, options) {
 
@@ -102,31 +34,303 @@ function Shipwire(username, password, options) {
 	};
 
 	requestOptions.host = options.sandbox ? 'api.beta.shipwire.com' : 'api.shipwire.com';
+	requestOptions.host = options.host || requestOptions.host;//allow overriding of host completely
 
-	this.requestOptions = requestOptions;
+	this.requestOptions = function() {
+		return requestOptions;
+	};
 	this.options = options;
 
 	return this;
 }
 
-Shipwire.prototype._newRequestBody = function(options) {
-	var requestBody = '<?xml version="1.0" encoding="UTF-8"?>\n';
 
-	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\n';
-	requestBody += '<' + options.type + '>\n';
-	requestBody += '\t<Username>' + this.username + '</Username>\n';
-	requestBody += '\t<Password>' + this.password + '</Password>\n';
-	requestBody += '\t<Server>' + this.options.server + '</Server>\n';
+/*
+=========
+Utilities
+=========
+*/
 
-	for (var i = 0; i < options.additionalFields.length; i++) {//forEach instead of for loop?
-		var field = options.additionalFields[i];
 
-		if (field.value === true || field.value === false) {//strict true, or strict false
-			requestBody += '\t<' + field.key + '/>\n';//self closing tag;
-		} else {
-			requestBody += '\t<' + field.key + '>' + field.value + '</' + field.key + '>\n';
+function cloneObject(object) {
+	var clone = {};
+	for (var key in object) {
+		if (object.hasOwnProperty(key)) {
+			clone[key] = object[key];
 		}
 	}
+	return clone;
+}
+
+function parseXML(string, next) {
+
+	function parseTracking(orders) {
+		
+		if (!orders || !orders.length) {
+			return [];
+		}
+		
+		orders = orders.map(function(order) {
+			var thisOrder = order.$;
+
+			for (var key in thisOrder) {
+				if (thisOrder.hasOwnProperty(key)) {
+					var thisKey = thisOrder[key];
+
+					var dateMatch = thisKey.match(/(\d{4})\-(\d{2})\-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/);//"YYYY-MM-DD HH:MM:SS"
+					if (dateMatch) {
+						dateMatch.splice(0, 1);//disregard the fully matched string, return only matched groups
+						dateMatch = dateMatch.map(function(number) {
+							return number|0;//numbers as strings to integers
+						});
+						--dateMatch[1];//decrease month value, as JS months start at 0;
+						var NewDate = Date.bind.apply(Date, [null].concat(dateMatch));
+						thisKey = new NewDate();//new Date from array
+					}
+
+					if (thisKey === "NO" || thisKey === "FALSE") {
+						thisKey = false;
+					} else if (thisKey === "YES" || thisKey === "TRUE") {
+						thisKey = true;
+					}
+
+					thisOrder[key] = thisKey;
+				}
+			}
+
+			if (order.TrackingNumber) {
+				order.TrackingNumber = order.TrackingNumber.map(function(item) {
+					var thisTrackingNumber = item.$;
+					thisTrackingNumber.trackingNumber = item._.replace(/[^a-zA-Z0-9\-\_]/g, "");
+					return thisTrackingNumber;
+				});
+				thisOrder.trackingNumber = order.TrackingNumber[0];
+			}
+			return thisOrder;
+		});
+		
+		return orders;
+	}
+	
+	function parseInventory(products) {
+	
+		if (!products || !products.length) {
+			return [];
+		}
+	
+		products = products.map(function(product) {
+			var thisProduct = product.$;
+			return thisProduct;
+		});
+		
+		return products;
+	}
+	
+	function parseRateRequest(orders) {
+	
+		if (!orders || !orders.length) {
+			return [];
+		}
+		
+		orders = orders.map(function(order) {
+			var thisOrder = order.Quotes[0].Quote;
+			return thisOrder;
+		});
+		
+		return orders;
+	}
+
+	xmlParser.parseString(string, function (err, result) {
+		if (err) {
+			return next(err);
+		}
+		
+		var parsed;
+
+		if (result.TrackingUpdateResponse) {
+			parsed = parseTracking(result.TrackingUpdateResponse.Order);
+		} else if (result.InventoryUpdateResponse) {
+			parsed = parseInventory(result.InventoryUpdateResponse.Product);
+		} else if (result.RateResponse) {
+			parsed = parseRateRequest(result.RateResponse.Order);
+		} else {
+			return next(null, result);
+		}
+		
+		return next(null, parsed);
+	});
+}
+
+function parseAddress(address) {
+
+	var parsedAddress = {
+		Company: address.company,
+		Address1: address.address1,
+		Address2: address.address2,
+		City: address.city,
+		State: address.state || address.province || address.region,
+		Country: address.country,
+		Zip: address.zip || address.postalCode,
+		Commercial: address.commercial,
+		POBox: address.poBox,
+		Phone: address.phone,
+		Email: address.email
+	};
+	
+	if (address.fullName) {
+		parsedAddress.Name = [
+			{
+				key: "Full",
+				value: address.fullName
+			}
+		];
+	}
+	
+	return parsedAddress;
+}
+
+
+function parseOrder(order) {
+	var object = {
+		key: "Order",
+		attributes: [],
+		value: []
+	};
+	
+	if (order.id) {
+		object.attributes.push({
+			key: "id",
+			value: order.id
+		});
+	}
+	
+	var shippingAddress = parseAddress(order.shippingAddress);
+	
+	var shippingAddressValues = [];
+	for (var key in shippingAddress) {
+		if (shippingAddress.hasOwnProperty(key) && !!shippingAddress[key]) {
+			shippingAddressValues.push({
+				key: key,
+				value: shippingAddress[key]
+			});
+		}
+	}
+	
+	object.value.push({
+		key: "AddressInfo",
+		attributes: [
+			{
+				key: "type",
+				value: "ship"
+			}
+		],
+		value: shippingAddressValues
+	});
+	
+	order.items.forEach(function(item, index) {
+		object.value.push({
+			key: "Item",
+			attributes: [
+				{
+					key: "num",
+					value: index
+				}
+			],
+			value: [
+				{
+					key: "Code",
+					value: item.code
+				},
+				{
+					key: "Quantity",
+					value: typeof item.quantity !== "undefined"? item.quantity : 1
+				}
+			]
+		});
+	});
+	
+	if (order.shipping) {
+		object.value.push({
+			key: "Shipping",
+			value: order.shipping
+		});
+	}
+	
+	object.value.push({
+		key: "Warehouse",
+		value: order.warehouse || "00"
+	});
+	
+	return object;
+}
+
+Shipwire.prototype._newRequestBody = function(options) {
+
+	var requestBody = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
+
+	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\r\n';
+	requestBody += '<' + options.type + '>\r\n';
+	requestBody += '\t<Username>' + this.username + '</Username>\r\n';
+	requestBody += '\t<Password>' + this.password + '</Password>\r\n';
+	requestBody += '\t<Server>' + this.options.server + '</Server>\r\n';//not needed for rate request. Do check for type "RateRequest"?
+	
+	function forEachAttribute(attribute) {
+		return " " + attribute.key + "=\"" + attribute.value + "\"";
+	}
+	
+	function forEachField(field) {
+		var localBody = "\t";
+		
+		if (field.value === false) {
+			return;
+		} else if (field.value === true) {//strict true, or strict false. Do we need false?
+		
+			localBody += '<' + field.key;
+			
+			if (field.attributes && Array.isArray(field.attributes)) {
+				localBody += field.attributes.forEach(forEachAttribute);
+			}
+			
+			localBody += '/>';
+			
+		} else if (Array.isArray(field.value)) {
+		
+			localBody += '<' + field.key;
+			
+			if (field.attributes) {
+				field.attributes.forEach(function (attribute) {
+					localBody += forEachAttribute(attribute);
+				});
+			}
+			
+			localBody += '>';
+			
+			field.value.forEach(function(value) {
+				localBody += forEachField(value);
+			});
+			
+			localBody += '</' + field.key + '>';
+			
+		} else {
+		
+			localBody += '<' + field.key;
+			
+			if (field.attributes) {
+				localBody += field.attributes.forEach(forEachAttribute);
+			}
+			
+			localBody += '>' + field.value + '</' + field.key + '>';
+			
+		}
+		
+		localBody += '\r\n';
+		return localBody;
+	}
+
+	options.additionalFields.forEach(function(field) {
+		var localBody = forEachField(field);
+		requestBody += localBody;
+	});
 
 	requestBody += '</' + options.type + '>\n';
 
@@ -134,7 +338,7 @@ Shipwire.prototype._newRequestBody = function(options) {
 };
 
 Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
-	//console.log(requestBody);
+
 	var responseBody = "";
 	var req = https.request(requestOptions, function(res) {
 		res.setEncoding('utf-8');
@@ -156,15 +360,20 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 	req.end();//end request, proceed to response
 };
 
+/*
+========
+Tracking
+========
+*/
+
 Shipwire.prototype._track = function(options, next) {
 
 	options = options || {};
 
 	var requestBodyOptions = {
-		type: "TrackingUpdate"
+		type: "TrackingUpdate",
+		additionalFields: []
 	};
-
-	requestBodyOptions.additionalFields = [];
 
 	if (typeof options.orderNo !== "undefined") {
 		requestBodyOptions.additionalFields.push({
@@ -189,10 +398,11 @@ Shipwire.prototype._track = function(options, next) {
 
 	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
-	var requestOptions = this.requestOptions;
+	var requestOptions = this.requestOptions();
 	requestOptions.path = '/exec/TrackingServices.php';
 
 	this._makeRequest(requestOptions, requestBody, function(err, body) {
+	
 		if (err) {
 			return next(err);
 		}
@@ -253,6 +463,12 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 	return Shipwire.prototype._track.call(this, options, next);
 };
 
+/*
+================
+Inventory Status
+================
+*/
+
 Shipwire.prototype.inventoryStatus = function(options, next) {
 
 	if (!next) {//if typeof options is a function?
@@ -264,10 +480,9 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 	options.raw = options.raw || false;
 
 	var requestBodyOptions = {
-		type: "InventoryUpdate"
+		type: "InventoryUpdate",
+		additionalFields: []
 	};
-
-	requestBodyOptions.additionalFields = [];
 
 	if (options.warehouse) {
 		requestBodyOptions.additionalFields.push({
@@ -309,8 +524,63 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 
 	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
-	var requestOptions = this.requestOptions;
+	var requestOptions = this.requestOptions();
 	requestOptions.path = '/exec/InventoryServices.php';
+
+	this._makeRequest(requestOptions, requestBody, function(err, body) {
+		if (err) {
+			return next(err);
+		}
+
+		if (options.raw) {
+			return next(null, body);
+		}
+
+		parseXML(body, function(err, json) {
+			json = options._multiple ? json : json[0];
+			return next(err, json);
+		});
+	});
+};
+
+
+/*
+============
+Rate Request
+============
+*/
+
+Shipwire.prototype.rateRequest = function(orders, options, next) {
+
+	if (!orders || !(Array.isArray(orders) || typeof orders === "object")) {
+		throw new Error("no orders passed in");
+	}
+
+	if (!next) {//if typeof options is a function?
+		next = options;
+		options = {};
+	}
+
+	options._multiple = true;
+	options.raw = options.raw || false;
+
+	var requestBodyOptions = {
+		type: "RateRequest",
+		additionalFields: []
+	};
+
+	if (Array.isArray(orders)) {
+		orders.forEach(function(order) {
+			requestBodyOptions.additionalFields.push(parseOrder(order));
+		});
+	} else {
+		requestBodyOptions.additionalFields.push(parseOrder(orders));
+	}
+	
+	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
+
+	var requestOptions = this.requestOptions();
+	requestOptions.path = '/exec/RateServices.php';
 
 	this._makeRequest(requestOptions, requestBody, function(err, body) {
 		if (err) {
