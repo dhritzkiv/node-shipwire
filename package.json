@@ -27,7 +27,7 @@
     "email": "daniel.hritzkiv@gmail.com",
     "url": "http://danielhritzkiv.com/"
   },
-  "license": "BSD",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/dhritzkiv/node-shipwire.git"
