@@ -8,7 +8,7 @@ var expectedTestResponse = JSON.parse(fs.readFileSync(__dirname + "/expectedTest
 var username = "daniel.hritzkiv@gmail.com";
 var password = "rTh-B4h-aSA-f6y";
 
-var Shipwire = require("../index.js");//node-shipwire;
+var Shipwire = require("../");//shipwire;
 var shipwire = new Shipwire(username, password, {
 	sandbox: true,//beta or real life
 	test: false
