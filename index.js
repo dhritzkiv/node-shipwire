@@ -556,7 +556,7 @@ Shipwire.prototype.trackAll = function(options, next) {
 
 Shipwire.prototype.trackById = function(id, options, next) {
 
-	if (!id || typeof id !== "string") {//use arguments.length?
+	if (!(id && typeof id === "string" || typeof id === "number")) {//use arguments.length?
 		throw new Error("No ID provided.");
 	}
 
@@ -572,7 +572,7 @@ Shipwire.prototype.trackById = function(id, options, next) {
 
 Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 
-	if (!id || typeof id !== "string") {
+	if (!(id && typeof id === "string" || typeof id === "number")) {
 		throw new Error("No ID provided.");
 	}
 

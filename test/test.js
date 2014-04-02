@@ -24,7 +24,7 @@ var shipwireFailProd = new Shipwire(username, password, {
 	test: true
 });
 
-var validOrderNumber = "21";//String, please.
+var validOrderNumber = 21;
 var validShipwireID = "1394587839-108974-1";
 
 var maxTimeout = 1e4;//10 seconds
