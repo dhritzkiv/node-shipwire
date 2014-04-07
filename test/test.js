@@ -80,6 +80,29 @@ var order2 = {
 	warehouse: "00"//default: 00, optimal warehouse
 };
 
+var order3 = {
+	id: "12579",
+	products: [
+		{
+			code: "Scanner-test",
+			quantity: 2
+		}
+	],
+	shippingAddress: {
+		fullName: "Tobias Fünke.",//individual or company
+		company: "",//up to 25 characters
+		address1: "Never Nüdes München GmB & Co.",
+		address2: "Dozens of us!",
+		city: "München",
+		state: "Bayern",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
+		country: "DE",//2-letter ISO code
+		zip: "80000", //"zip", and "postal code" are interchangeable
+		commercial: false,//Boolean
+		POBox: ""//null by default. Is it a Boolean?
+	},
+	warehouse: "00", //default: 00, optimal warehouse
+};
+
 describe('Shipwire', function() {
 
 	describe("New Shipwire instance", function() {
@@ -340,6 +363,14 @@ describe('Shipwire', function() {
 			shipwire.rateRequest(order, function(err, result) {
 				assert.equal(true, result && !Array.isArray(result));
 				assert.equal(true, result.order.id === order.id);
+				done();
+			});
+		});
+
+		it('should return an error when an order has bad information', function(done) {
+			shipwire.rateRequest(order3, function(err, result) {
+				assert.equal(true, !!err);
+				assert.equal(true, err instanceof Error);
 				done();
 			});
 		});

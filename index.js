@@ -716,13 +716,17 @@ Shipwire.prototype.rateRequest = function(orders, options, next) {
 		}
 
 		parseXML(body, function(err, json) {
-			json = json.map(function(order) {
-				order.order = Array.isArray(orders) ? orders[order._sequence - 1] : orders;
-				delete order._sequence;
-				return order;
-			});
 
-			json = options._multiple ? json : json[0];
+			if (json && Array.isArray(json)) {
+				json = json.map(function(order) {
+					order.order = Array.isArray(orders) ? orders[order._sequence - 1] : orders;
+					delete order._sequence;
+					return order;
+				});
+
+				json = options._multiple ? json : json[0];
+			}
+
 			return next(err, json);
 		});
 	});
