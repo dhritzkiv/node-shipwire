@@ -388,7 +388,7 @@ describe('Shipwire', function() {
 			});
 		});
 
-		it('should be create Booleans from "NO", "YES", "TRUE", "FALSE"', function(done) {
+		it('should create Booleans from "NO", "YES", "TRUE", "FALSE"', function(done) {
 			shipwireTest.trackAll(function(err, orders) {
 				var containsBoolean = false;
 				for (var key in orders[0]) {
