@@ -1,3 +1,9 @@
+0.1.2 / 2014-04-08
+
+* Add
+	- Error handling for rate request error responses
+
+
 0.1.0 / 2014-03-21
 ==================
 

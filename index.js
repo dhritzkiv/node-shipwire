@@ -162,8 +162,13 @@ function parseXML(string, next) {
 			var thisQuote = order.Quotes[0].Quote;
 			thisQuote = thisQuote.map(function(method) {
 				var newMethod = {
-					method: method.$.method,
-					warehouse: method.Warehouse[0],
+					method: method.$.method
+				};
+
+				newMethod.warehouse = {
+					warehouse: method.Warehouse[0]._,
+					code: method.Warehouse[0].$.code,
+					region: method.Warehouse[0].$.region
 				};
 
 				newMethod.service = {
@@ -181,16 +186,17 @@ function parseXML(string, next) {
 				}
 
 				function castCost(object) {
+
 					var costObject = {
-						total: object._,
-						currency: object.$.currency,
-						converted: object.$.converted
+						total: parseFloat(object._)//,
+						//currency: object.$.currency,
+						//converted: object.$.converted
 					};
 
-					if (costObject.converted) {
+					/*if (costObject.converted) {
 						costObject.originalTotal = object.$.originalCost;
 						costObject.originalCurrency = object.$.originalCurrency;
-					}
+					}*/
 
 					return costObject;
 				}
@@ -202,8 +208,11 @@ function parseXML(string, next) {
 						return item.$.type === costType;
 					})[0];
 
-					newMethod.cost[costType.toLowerCase()] = castCost(matchingType.Cost[0]);
-					newMethod.cost[costType.toLowerCase()].includedInCost = matchingType.$.includedInCost;
+					newMethod.cost[costType.toLowerCase()] = parseFloat(matchingType.Cost[0]._);//castCost(matchingType.Cost[0]);
+
+					/*if (typeof matchingType.$.includedInCost != "undefined") {
+						newMethod.cost[costType.toLowerCase()].includedInCost = matchingType.$.includedInCost;
+					}*/
 				});
 
 				newMethod.deliveryEstimate = {
@@ -689,7 +698,11 @@ Shipwire.prototype.rateRequest = function(orders, options, next) {
 
 	var requestBodyOptions = {
 		type: "RateRequest",
-		additionalFields: []
+		additionalFields: [
+			/*{
+				currency: "CAD"
+			}*/
+		]
 	};
 
 	if (Array.isArray(orders)) {
