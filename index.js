@@ -111,6 +111,14 @@ function parseXML(string, next) {
 		return false;
 	}
 
+	function checkErrorInOrder(order) {
+		if (order.Errors) {
+			var error = new Error(order.Errors[0].Error);
+			return error;
+		}
+		return false;
+	}
+
 	function parseTracking(orders) {
 
 		if (!orders || !orders.length) {
@@ -154,6 +162,16 @@ function parseXML(string, next) {
 
 		if (!orders || !orders.length) {
 			return [];
+		}
+
+		var error;
+		orders.some(function(order) {
+			error = checkErrorInOrder(order);
+			return !!error;
+		});
+
+		if (error) {
+			return error;
 		}
 
 		orders = recursiveCast(orders);
@@ -216,8 +234,8 @@ function parseXML(string, next) {
 				});
 
 				newMethod.deliveryEstimate = {
-					minimum: method.DeliveryEstimate[0].Minimum[0]._,
-					maximum: method.DeliveryEstimate[0].Maximum[0]._
+					minimum: parseInt(method.DeliveryEstimate[0].Minimum[0]._),
+					maximum: parseInt(method.DeliveryEstimate[0].Maximum[0]._)
 				};
 
 				return newMethod;
@@ -255,6 +273,10 @@ function parseXML(string, next) {
 			parsed = parseRateRequest(result.RateResponse.Order);
 		} else {
 			return next(null, result);
+		}
+
+		if (parsed instanceof Error) {
+			return next(parsed);
 		}
 
 		return next(null, parsed);
@@ -565,8 +587,12 @@ Shipwire.prototype.trackAll = function(options, next) {
 
 Shipwire.prototype.trackById = function(id, options, next) {
 
+	if (!id) {
+		throw new Error("No arguments passed");
+	}
+
 	if (!(id && typeof id === "string" || typeof id === "number")) {//use arguments.length?
-		throw new Error("No ID provided.");
+		return id(new Error("No ID provided."));//next is id;
 	}
 
 	if (!next) {//if typeof options is a function?
@@ -581,8 +607,12 @@ Shipwire.prototype.trackById = function(id, options, next) {
 
 Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 
+	if (!id) {
+		throw new Error("No arguments passed");
+	}
+
 	if (!(id && typeof id === "string" || typeof id === "number")) {
-		throw new Error("No ID provided.");
+		return id(new Error("No ID provided."));//next is id;
 	}
 
 	if (!next) {//if typeof options is a function?
@@ -685,7 +715,8 @@ Rate Request
 Shipwire.prototype.rateRequest = function(orders, options, next) {
 
 	if (!arguments.length || typeof orders !== "object" || (!Array.isArray(orders) ? typeof orders.shippingAddress === "undefined" : typeof orders[0].shippingAddress === "undefined")) {
-		throw new Error("no orders passed in");
+		//throw new Error("no orders passed in");
+		return orders(new Error("no orders passed in"));//next = orders;
 	}//this if statement is a bit complicated. Any better way of checking, without giving up the convenience of 'orders' being an Array or Object?
 
 	if (!next) {//if typeof options is a function?
@@ -704,6 +735,8 @@ Shipwire.prototype.rateRequest = function(orders, options, next) {
 			}*/
 		]
 	};
+
+	var random = Math.random();
 
 	if (Array.isArray(orders)) {
 		orders.forEach(function(order) {
@@ -729,6 +762,10 @@ Shipwire.prototype.rateRequest = function(orders, options, next) {
 		}
 
 		parseXML(body, function(err, json) {
+
+			if (err) {
+				return next(err);
+			}
 
 			if (json && Array.isArray(json)) {
 				json = json.map(function(order) {

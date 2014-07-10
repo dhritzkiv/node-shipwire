@@ -43,7 +43,7 @@ var order = {
 		}
 	],
 	shippingAddress: {
-		fullName: "Tobias Fünke.",//individual or company
+		fullName: "Bob Loblaw.",//individual or company
 		company: "",//up to 25 characters
 		address1: "123 Fake Street.",
 		address2: "#2",
@@ -67,15 +67,13 @@ var order2 = {
 	],
 	shippingAddress: {
 		fullName: "Bob Loblaw.",//individual or company
-		company: "Law Office",//up to 25 characters
-		address1: "151 Sterling Road",
-		address2: "#2",
-		city: "Toronto",
-		province: "ON",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
-		country: "CA",//2-letter ISO code
-		postalCode: "M6R 2B2", //"zip", and "postal code" are interchangeable
+		company: "Dunsfold Park Ltd",//up to 25 characters
+		address1: "Dunsfold Park",
+		city: "Cranleigh",
+		province: "Surrey",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
+		country: "GB",//2-letter ISO code
+		postalCode: "GU68TB", //"zip", and "postal code" are interchangeable
 		commercial: true,//Boolean
-		POBox: ""//null by default. Is it a Boolean?
 	},
 	warehouse: "00"//default: 00, optimal warehouse
 };
@@ -91,7 +89,7 @@ var order3 = {
 	shippingAddress: {
 		fullName: "Tobias Fünke.",//individual or company
 		company: "",//up to 25 characters
-		address1: "Never Nüdes München GmB & Co.",
+		address1: "Never Nüdes München GmB & Co.",//fake address
 		address2: "Dozens of us!",
 		city: "München",
 		state: "Bayern",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
@@ -101,6 +99,28 @@ var order3 = {
 		POBox: ""//null by default. Is it a Boolean?
 	},
 	warehouse: "00", //default: 00, optimal warehouse
+};
+
+var order4 = {//bad address;
+	id: "12578",
+	products: [
+		{
+			code: "sun-0001"
+		}
+	],
+	shippingAddress: {
+		fullName: "Bob Loblaw.",//individual or company
+		company: "Law Office",//up to 25 characters
+		address1: "151 Sterling Road",
+		address2: "#2",
+		city: "Toronto",
+		province: "ON",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
+		country: "U",//2-letter ISO code
+		//postalCode: "M6R 2B2", //"zip", and "postal code" are interchangeable
+		//commercial: true,//Boolean
+		//POBox: ""//null by default. Is it a Boolean?
+	},
+	warehouse: "00"//default: 00, optimal warehouse
 };
 
 describe('Shipwire', function() {
@@ -164,13 +184,20 @@ describe('Shipwire', function() {
 		this.timeout(maxTimeout);
 		this.slow(slowTime);
 
-		it('should throw an error when there\'s no id', function() {
-			this.timeout(10);
+
+		it('should throw an error when no arguments are passed', function() {
 			assert.throws(function() {
-				shipwire.trackByOrderNumber(function(err, order) {
-					//do nothing;
-				});
+				shipwire.trackByOrderNumber();
 			}, Error);
+		});
+
+		it('should return an error when there\'s no id', function(done) {
+			this.timeout(10);
+			shipwire.trackByOrderNumber(function(err, order) {
+				assert.equal(true, !!err);
+				assert.equal(true, err instanceof Error);
+				done();
+			});
 		});
 
 		it('should return an order', function(done) {
@@ -210,13 +237,19 @@ describe('Shipwire', function() {
 		this.timeout(maxTimeout);
 		this.slow(slowTime);
 
-		it('should throw an error when there\'s no id', function() {
-			this.timeout(10);
+		it('should throw an error when no arguments are passed', function() {
 			assert.throws(function() {
-				shipwire.trackById(function(err, order) {
-					//do nothing;
-				});
+				shipwire.trackById();
 			}, Error);
+		});
+
+		it('should return an error when there\'s no id', function(done) {
+			this.timeout(10);
+			shipwire.trackById(function(err, order) {
+				assert.equal(true, !!err);
+				assert.equal(true, err instanceof Error);
+				done();
+			});
 		});
 
 		it('should return an order', function(done) {
@@ -342,12 +375,12 @@ describe('Shipwire', function() {
 		this.timeout(maxTimeout);
 		this.slow(slowTime);
 
-		it('should throw an error when there\'s no order', function() {
-			assert.throws(function() {
-				shipwire.rateRequest(function(err, results) {
-					//nothing to be done;
-				});
-			}, Error);
+		it('should return an error when there\'s no order', function(done) {
+			shipwire.rateRequest(function(err, results) {
+				assert.equal(true, !!err);
+				assert.equal(true, err instanceof Error);
+				done();
+			});
 		});
 
 		it('should return an array of orders with quotes and original orders', function(done) {
@@ -368,6 +401,14 @@ describe('Shipwire', function() {
 
 		it('should return an error when an order has bad information', function(done) {
 			shipwire.rateRequest(order3, function(err, result) {
+				assert.equal(true, !!err);
+				assert.equal(true, err instanceof Error);
+				done();
+			});
+		});
+
+		it('should return an error when an order has bad address information', function(done) {
+			shipwire.rateRequest(order4, function(err, result) {
 				assert.equal(true, !!err);
 				assert.equal(true, err instanceof Error);
 				done();
