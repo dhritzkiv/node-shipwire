@@ -128,6 +128,16 @@ function parseXML(string, next) {
 			return [];
 		}
 
+		var error;
+		orders.some(function(order) {
+			error = checkErrorInOrder(order);
+			return !!error;
+		});
+
+		if (error) {
+			return error;
+		}
+
 		orders = orders.map(function(order) {
 			var thisOrder = order.$;
 
@@ -498,6 +508,7 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 	var responseBody = "";
 	var req = https.request(requestOptions, function(res) {
 
+
 		if (res.statusCode === 500) {
 			var error = new Error("Shipwire server error");
 			error.code = 500;
@@ -565,6 +576,7 @@ Shipwire.prototype._track = function(options, next) {
 	requestOptions.path = '/exec/TrackingServices.php';
 
 	this._makeRequest(requestOptions, requestBody, function(err, body) {
+
 		if (err) {
 			return next(err);
 		}
@@ -574,8 +586,13 @@ Shipwire.prototype._track = function(options, next) {
 		}
 
 		parseXML(body, function(err, json) {
+
+			if (err) {
+				return next(err);
+			}
+
 			json = options._multiple ? json : json[0];
-			return next(err, json);
+			return next(null, json);
 		});
 	});
 
@@ -707,6 +724,10 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 		}
 
 		parseXML(body, function(err, json) {
+			if (err) {
+				return next(err);
+			}
+
 			json = options._multiple ? json : json[0];
 			return next(err, json);
 		});
