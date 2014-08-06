@@ -112,11 +112,14 @@ function parseXML(string, next) {
 	}
 
 	function checkErrorInOrder(order) {
+		var error = false;
 		if (order.Errors) {
-			var error = new Error(order.Errors[0].Error);
-			return error;
+			error = new Error(order.Errors[0].Error);
 		}
-		return false;
+		if (order.Warnings) {
+			error = new Error(order.Warnings[0].Warning);
+		}
+		return error;
 	}
 
 	function parseTracking(orders) {
@@ -177,8 +180,13 @@ function parseXML(string, next) {
 		orders = recursiveCast(orders);
 
 		orders = orders.map(function(order) {
-			var thisQuote = order.Quotes[0].Quote;
-			thisQuote = thisQuote.map(function(method) {
+			var quotes = order.Quotes[0].Quote;
+
+			if (!Array.isArray(quotes)) {
+				return [];
+			}
+
+			quotes = quotes.map(function(method) {
 				var newMethod = {
 					method: method.$.method
 				};
@@ -244,7 +252,7 @@ function parseXML(string, next) {
 			//thisOrder
 			var orderObject = {
 				_sequence: order.$.sequence,
-				quotes: thisQuote
+				quotes: quotes
 			};
 
 			return orderObject;
