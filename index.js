@@ -508,7 +508,6 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 	var responseBody = "";
 	var req = https.request(requestOptions, function(res) {
 
-
 		if (res.statusCode === 500) {
 			var error = new Error("Shipwire server error");
 			error.code = 500;
@@ -525,8 +524,10 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 		});
 	});
 
+	req.setTimeout(2e4);
+
 	req.on('error', function(err) {
-		console.log('http req error: ' + err.message || err);
+		console.log('http req error: ' + err);
 		return next(err);
 	});
 
