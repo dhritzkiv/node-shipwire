@@ -524,10 +524,17 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 		});
 	});
 
-	req.setTimeout(2e4);
+	req.on('socket', function(socket) {
+
+		socket.setTimeout(1e4);//10 seconds;
+
+		socket.on('timeout', function() {
+			socket.destroy();
+		});
+	});
 
 	req.on('error', function(err) {
-		console.log('http req error: ' + err);
+		//console.log('http req error: ' + err);
 		return next(err);
 	});
 
