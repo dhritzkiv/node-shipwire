@@ -307,12 +307,13 @@ function parseAddress(address) {
 		Company: address.company,
 		Address1: address.address1,
 		Address2: address.address2,
+		Address3: address.address3,
 		City: address.city,
-		State: address.state || address.province || address.region,
+		State: address.state,
 		Country: address.country,
 		Zip: address.zip || address.postalCode,
 		Commercial: address.commercial,
-		POBox: address.POBox,
+		PoBox: address.poBox,
 		Phone: address.phone,
 		Email: address.email
 	};
@@ -395,6 +396,13 @@ function parseOrder(order) {
 			value: order.shipping
 		});
 	}
+	
+	if (order.method) {
+		object.value.push({
+			key: "Method",
+			value: order.method
+		});
+	}
 
 	object.value.push({
 		key: "Warehouse",
@@ -402,22 +410,18 @@ function parseOrder(order) {
 	});
 
 	if (order.warehouseContinents) {
-		if (Array.isArray(order.warehouseContinents)) {
-			object.value.push({
-				key: "WarehouseContinents",
-				value: order.warehouseContinents.map(function(continent) {
-					return {
-						key: "Continent",
-						value: continent
-					};
-				})
-			});
-		} else {
-			object.value.push({
-				key: "WarehouseContinents",
-				value: order.warehouseContinents
-			});
+		if (!Array.isArray(order.warehouseContinents)) {
+			order.warehouseContinents = [order.warehouseContinents];
 		}
+		object.value.push({
+			key: "WarehouseContinents",
+			value: order.warehouseContinents.map(function(continent) {
+				return {
+					key: "Continent",
+					value: continent.replace(/\s/,"_").toUpperCase()
+				};
+			})
+		});
 	}
 
 	if (order.warehouseCountry) {
@@ -436,8 +440,8 @@ Shipwire.prototype._newRequestBody = function(options) {
 
 	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\r\n';
 	requestBody += '<' + options.type + '>\r\n';
-	requestBody += '\t<Username>' + this.username + '</Username>\r\n';
-	requestBody += '\t<Password>' + this.password + '</Password>\r\n';
+	requestBody += '\t<Username><![CDATA[' + this.username + ']]></Username>\r\n';
+	requestBody += '\t<Password><![CDATA[' + this.password + ']]></Password>\r\n';
 	requestBody += '\t<Server>' + this.options.server + '</Server>\r\n';//not needed for rate request. Do check for type "RateRequest"?
 
 	function forEachAttribute(attribute) {
@@ -749,21 +753,9 @@ Rate Request
 ============
 */
 
-Shipwire.prototype.rateRequest = function(orders, options, next) {
-
-	if (!arguments.length || typeof orders !== "object" || (!Array.isArray(orders) ? typeof orders.shippingAddress === "undefined" : typeof orders[0].shippingAddress === "undefined")) {
-		//throw new Error("no orders passed in");
-		return orders(new Error("no orders passed in"));//next = orders;
-	}//this if statement is a bit complicated. Any better way of checking, without giving up the convenience of 'orders' being an Array or Object?
-
-	if (!next) {//if typeof options is a function?
-		next = options;
-		options = {};
-	}
-
-	options._multiple = true;
-	options.raw = options.raw || false;
-
+Shipwire.prototype._rateRequest = function(orders, options, next) {
+	options = options || {};
+	
 	var requestBodyOptions = {
 		type: "RateRequest",
 		additionalFields: [
@@ -772,18 +764,11 @@ Shipwire.prototype.rateRequest = function(orders, options, next) {
 			}*/
 		]
 	};
-
-	var random = Math.random();
-
-	if (Array.isArray(orders)) {
-		orders.forEach(function(order) {
-			requestBodyOptions.additionalFields.push(parseOrder(order));
-		});
-	} else {
-		options._multiple = false;//if a single object is passed in, return a single object out
-		requestBodyOptions.additionalFields.push(parseOrder(orders));
-	}
-
+	
+	orders.forEach(function(order) {
+		requestBodyOptions.additionalFields.push(parseOrder(order));
+	});
+	
 	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
 	var requestOptions = this.requestOptions();
@@ -817,6 +802,58 @@ Shipwire.prototype.rateRequest = function(orders, options, next) {
 			return next(err, json);
 		});
 	});
+};
+
+Shipwire.prototype.rateRequest = function(orders, options, next) {
+
+	if (!arguments.length || typeof orders !== "object" || (!Array.isArray(orders) ? typeof orders.shippingAddress === "undefined" : typeof orders[0].shippingAddress === "undefined")) {
+		//throw new Error("no orders passed in");
+		return orders(new Error("no orders passed in"));//next = orders;
+	}//this if statement is a bit complicated. Any better way of checking, without giving up the convenience of 'orders' being an Array or Object?
+
+	if (!next) {//if typeof options is a function?
+		next = options;
+		options = {};
+	}
+
+	options._multiple = true;
+	options.raw = options.raw || false;
+	
+	if (!Array.isArray(orders)) {
+		orders = [orders];
+		options._multiple = false;
+	}
+	
+	return Shipwire.prototype._rateRequest.call(this, orders, options, next);
+};
+
+
+Shipwire.prototype.rateRequestByMethod = function(orders, method, options, next) {
+
+	if (!arguments.length || typeof orders !== "object" || typeof method !== "string" || (!Array.isArray(orders) ? typeof orders.shippingAddress === "undefined" : typeof orders[0].shippingAddress === "undefined")) {
+		//throw new Error("no orders passed in");
+		return orders(new Error("no orders passed in"));//next = orders;
+	}//this if statement is a bit complicated. Any better way of checking, without giving up the convenience of 'orders' being an Array or Object?
+
+	if (!next) {//if typeof options is a function?
+		next = options;
+		options = {};
+	}
+
+	options._multiple = true;
+	options.raw = options.raw || false;
+
+	if (!Array.isArray(orders)) {
+		orders = [orders];
+		options._multiple = false;
+	}
+	
+	orders = orders.map(function(order) {
+		order.method = method.toUpperCase();
+		return order;
+	});
+	
+	return Shipwire.prototype._rateRequest.call(this, orders, options, next);
 };
 
 module.exports = Shipwire;

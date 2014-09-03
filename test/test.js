@@ -48,14 +48,14 @@ var order = {
 		address1: "123 Fake Street.",
 		address2: "#2",
 		city: "Beverly Hills",
-		state: "CA",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
+		region: "CA",//If state or prov, use 2-letter code, otherwise, full name
 		country: "CA",//2-letter ISO code
 		zip: "90210", //"zip", and "postal code" are interchangeable
 		commercial: false,//Boolean
-		POBox: ""//null by default. Is it a Boolean?
+		poBox: ""//null by default. Is it a Boolean?
 	},
-	warehouse: "00", //default: 00, optimal warehouse
-	warehouseCountry: "US"
+	//warehouse: "00", //default: 00, optimal warehouse
+	//warehouseCountry: "US"
 };
 
 var order2 = {
@@ -70,12 +70,13 @@ var order2 = {
 		company: "Dunsfold Park Ltd",//up to 25 characters
 		address1: "Dunsfold Park",
 		city: "Cranleigh",
-		province: "Surrey",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
+		region: "Surrey",//"If state or prov, use 2-letter code, otherwise, full name
 		country: "GB",//2-letter ISO code
 		postalCode: "GU68TB", //"zip", and "postal code" are interchangeable
 		commercial: true,//Boolean
 	},
-	warehouse: "00"//default: 00, optimal warehouse
+	//warehouse: "00"//default: 00, optimal warehouse
+	continent: "Europe"
 };
 
 var order3 = {
@@ -92,11 +93,11 @@ var order3 = {
 		address1: "Never Nüdes München GmB & Co.",//fake address
 		address2: "Dozens of us!",
 		city: "München",
-		state: "Bayern",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
+		region: "Bayern",//If state or prov, use 2-letter code, otherwise, full name
 		country: "DE",//2-letter ISO code
 		zip: "80000", //"zip", and "postal code" are interchangeable
 		commercial: false,//Boolean
-		POBox: ""//null by default. Is it a Boolean?
+		poBox: ""//null by default. Is it a Boolean?
 	},
 	warehouse: "00", //default: 00, optimal warehouse
 };
@@ -114,11 +115,11 @@ var order4 = {//bad address;
 		address1: "151 Sterling Road",
 		address2: "#2",
 		city: "Toronto",
-		province: "ON",//"state", "province", "region" are interchangeable. If state or prov, use 2-letter code, otherwise, full name
+		region: "ON",//If state or prov, use 2-letter code, otherwise, full name
 		country: "U",//2-letter ISO code
 		//postalCode: "M6R 2B2", //"zip", and "postal code" are interchangeable
 		//commercial: true,//Boolean
-		//POBox: ""//null by default. Is it a Boolean?
+		//poBox: ""//null by default. Is it a Boolean?
 	},
 	warehouse: "00"//default: 00, optimal warehouse
 };
@@ -383,7 +384,7 @@ describe('Shipwire', function() {
 			});
 		});
 
-		it('should return an array of orders with quotes and original orders', function(done) {
+		it('should return an array of orders with quotes and original orders in order', function(done) {
 			shipwire.rateRequest([order, order2], function(err, results) {
 				assert.equal(true, results && Array.isArray(results) && results.length > 0);
 				assert.equal(true, results[0].order.id === order.id);
@@ -393,6 +394,15 @@ describe('Shipwire', function() {
 
 		it('should return a single order object with quotes and original order', function(done) {
 			shipwire.rateRequest(order, function(err, result) {
+				assert.equal(true, result && !Array.isArray(result));
+				assert.equal(true, result.order.id === order.id);
+				done();
+			});
+		});
+		
+		it('should return a single order object with quotes and original order', function(done) {
+			shipwire.rateRequestByMethod(order, "INTL", function(err, result) {
+				console.log(result);
 				assert.equal(true, result && !Array.isArray(result));
 				assert.equal(true, result.order.id === order.id);
 				done();
