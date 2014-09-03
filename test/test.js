@@ -359,16 +359,6 @@ describe('Shipwire', function() {
 				done();
 			});
 		});
-
-		/*it('should return products based on single SKUs as string, and warehouse', function(done) {
-			shipwire.inventoryStatus({
-				warehouse: "TOR"
-			}, function(err, products) {
-				console.log(products)
-				assert.equal(true, products && Array.isArray(products) && products.length > 0);
-				done();
-			});
-		});*/
 	});
 
 	describe('#rateRequest()', function() {
