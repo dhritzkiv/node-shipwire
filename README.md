@@ -3,6 +3,8 @@ shipwire
 
 Node.js library to communicate with the Shipwire API
 
+### Note: this library is no in development as Shipwire's XML API (V2) has been superceded by their recently released REST API (V3). This library will not be compatible with API V3.
+
 ##Features
 
 ###Current
@@ -12,13 +14,6 @@ Node.js library to communicate with the Shipwire API
 - [Rate Quotes](#rate-request)
 - Conversion of XML responses to JSON (using [xml2js](https://github.com/Leonidas-from-XIV/node-xml2js))
 
-###Upcoming
-
-- Fulfillment Services
-
-###To Do
-
-- Incorporate [planned](https://twitter.com/shipwire/status/443435986702598144) native JSON response from Shipwire once it lands. Possibly in a new major version branch.
 
 ##Install
 
