@@ -396,7 +396,7 @@ function parseOrder(order) {
 			value: order.shipping
 		});
 	}
-	
+
 	if (order.method) {
 		object.value.push({
 			key: "Method",
@@ -489,7 +489,7 @@ Shipwire.prototype._newRequestBody = function(options) {
 				localBody += field.attributes.forEach(forEachAttribute);
 			}
 
-			localBody += '>' + field.value + '</' + field.key + '>';
+			localBody += '><![CDATA[' + field.value + ']]></' + field.key + '>';
 
 		}
 
@@ -755,7 +755,7 @@ Rate Request
 
 Shipwire.prototype._rateRequest = function(orders, options, next) {
 	options = options || {};
-	
+
 	var requestBodyOptions = {
 		type: "RateRequest",
 		additionalFields: [
@@ -764,11 +764,11 @@ Shipwire.prototype._rateRequest = function(orders, options, next) {
 			}*/
 		]
 	};
-	
+
 	orders.forEach(function(order) {
 		requestBodyOptions.additionalFields.push(parseOrder(order));
 	});
-	
+
 	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
 	var requestOptions = this.requestOptions();
@@ -818,12 +818,12 @@ Shipwire.prototype.rateRequest = function(orders, options, next) {
 
 	options._multiple = true;
 	options.raw = options.raw || false;
-	
+
 	if (!Array.isArray(orders)) {
 		orders = [orders];
 		options._multiple = false;
 	}
-	
+
 	return Shipwire.prototype._rateRequest.call(this, orders, options, next);
 };
 
@@ -847,12 +847,12 @@ Shipwire.prototype.rateRequestByMethod = function(orders, method, options, next)
 		orders = [orders];
 		options._multiple = false;
 	}
-	
+
 	orders = orders.map(function(order) {
 		order.method = method.toUpperCase();
 		return order;
 	});
-	
+
 	return Shipwire.prototype._rateRequest.call(this, orders, options, next);
 };
 

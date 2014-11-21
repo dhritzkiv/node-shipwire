@@ -44,7 +44,7 @@ var order = {
 	],
 	shippingAddress: {
 		fullName: "Bob Loblaw.",//individual or company
-		company: "",//up to 25 characters
+		company: "Bob & Bob Law Inc.",//up to 25 characters
 		address1: "123 Fake Street.",
 		address2: "#2",
 		city: "Beverly Hills",
@@ -88,13 +88,13 @@ var order3 = {
 		}
 	],
 	shippingAddress: {
-		fullName: "Tobias Fünke.",//individual or company
+		fullName: "Toby Fünke.",//individual or company
 		company: "",//up to 25 characters
 		address1: "Never Nüdes München GmB & Co.",//fake address
-		address2: "Dozens of us!",
+		address2: "There are Dozens of us!",
 		city: "München",
-		region: "Bayern",//If state or prov, use 2-letter code, otherwise, full name
-		country: "DE",//2-letter ISO code
+		region: "B",//If state or prov, use 2-letter code, otherwise, full name//fake region
+		country: "ZZ",//2-letter ISO code//wrong country
 		zip: "80000", //"zip", and "postal code" are interchangeable
 		commercial: false,//Boolean
 		poBox: ""//null by default. Is it a Boolean?
@@ -389,10 +389,9 @@ describe('Shipwire', function() {
 				done();
 			});
 		});
-		
+
 		it('should return a single order object with quotes and original order', function(done) {
 			shipwire.rateRequestByMethod(order, "INTL", function(err, result) {
-				console.log(result);
 				assert.equal(true, result && !Array.isArray(result));
 				assert.equal(true, result.order.id === order.id);
 				done();
