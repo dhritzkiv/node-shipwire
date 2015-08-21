@@ -1,4 +1,13 @@
+1.0.0 / 2015-08-21
+==================
+
+* Change
+	- Tracking information for a single order returns an array instead of a single object.
+		- This is a breaking change, hence the major version bump.
+	
+
 0.1.2 / 2014-04-08
+==================
 
 * Add
 	- Error handling for rate request error responses
