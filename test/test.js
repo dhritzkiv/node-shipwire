@@ -202,8 +202,8 @@ describe('Shipwire', function() {
 		});
 
 		it('should return an order', function(done) {
-			shipwire.trackByOrderNumber(validOrderNumber, function(err, order) {
-				assert.equal(true, order && !Array.isArray(order));//object and not an array;
+			shipwire.trackByOrderNumber(validOrderNumber, function(err, orderTrackings) {
+				assert.equal(true, Array.isArray(orderTrackings));//an array;
 				done();
 			});
 		});
@@ -218,8 +218,8 @@ describe('Shipwire', function() {
 		});
 
 		it('should return undefined as there is no such order', function(done) {
-			shipwire.trackByOrderNumber("____", function(err, order) {
-				assert.equal(true, order === undefined);//object and not an array;
+			shipwire.trackByOrderNumber("____", function(err, orderTrackings) {
+				assert.equal(0, orderTrackings.length);//an empty array;
 				done();
 			});
 		});
@@ -228,7 +228,7 @@ describe('Shipwire', function() {
 			shipwire.trackByOrderNumber("____", {
 				raw: true
 			}, function(err, order) {
-				assert.equal(true, /^<\?xml/g.test(order));//object and not an array;
+				assert.equal(true, /^<\?xml/g.test(order));//raw xml;
 				done();
 			});
 		});
@@ -254,8 +254,8 @@ describe('Shipwire', function() {
 		});
 
 		it('should return an order', function(done) {
-			shipwire.trackById(validShipwireID, function(err, order) {
-				assert.equal(true, order && !Array.isArray(order));//object and not an array;
+			shipwire.trackById(validShipwireID, function(err, orderTrackings) {
+				assert.equal(true, Array.isArray(orderTrackings));//an array of tracking information for an order;
 				done();
 			});
 		});
@@ -263,15 +263,15 @@ describe('Shipwire', function() {
 		it('should return an order in xml', function(done) {
 			shipwire.trackById(validShipwireID, {
 				raw: true
-			}, function(err, order) {
-				assert.equal(true, /^<\?xml/g.test(order));//passes as xml
+			}, function(err, orderTrackings) {
+				assert.equal(true, /^<\?xml/g.test(orderTrackings));//passes as xml
 				done();
 			});
 		});
 
-		it('should return undefined as there is no such order', function(done) {
-			shipwire.trackById("_!__", function(err, order) {
-				assert.equal(true, order === undefined);//object and not an array;
+		it('should return an empty array as there is no such order', function(done) {
+			shipwire.trackById("_!__", function(err, orders) {
+				assert.equal(0, orders.length);//object and an empty array;
 				done();
 			});
 		});

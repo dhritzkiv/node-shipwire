@@ -638,7 +638,7 @@ Shipwire.prototype.trackById = function(id, options, next) {
 	}
 
 	options.id = id;
-	options._multiple = false;//return just one;
+	options._multiple = true;//return an array of tracking information, as each order may have multiple tracking numbers
 	return Shipwire.prototype._track.call(this, options, next);
 };
 
@@ -658,7 +658,7 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 	}
 
 	options.orderNo = id;
-	options._multiple = false;//return just one;
+	options._multiple = true;//return an array of tracking information, as each order may have multiple tracking numbers
 	return Shipwire.prototype._track.call(this, options, next);
 };
 
