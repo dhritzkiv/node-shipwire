@@ -5,7 +5,9 @@
   "main": "index.js",
   "private": false,
   "scripts": {
-    "test": "mocha --reporter spec"
+    "test": "mocha --reporter spec",
+    "lint": "jshint .",
+    "validate": "npm ls"
   },
   "config": {
     "precommit": {
@@ -33,10 +35,15 @@
     "url": "https://github.com/dhritzkiv/node-shipwire.git"
   },
   "dependencies": {
-    "xml2js": "^0.4.1"
+    "xml2js": "^0.4.10"
   },
   "devDependencies": {
-    "mocha": "^1.17.1",
-    "precommit-hook": "^0.3.10"
-  }
+    "mocha": "^2.2.5",
+    "precommit-hook": "^3.0.0"
+  },
+  "pre-commit": [
+    "lint",
+    "validate",
+    "test"
+  ]
 }
