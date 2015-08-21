@@ -1,6 +1,6 @@
 {
   "name": "shipwire",
-  "version": "0.1.8",
+  "version": "1.0.0",
   "description": "Node library to communicate with the Shipwire API",
   "main": "index.js",
   "private": false,
