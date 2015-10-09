@@ -532,7 +532,7 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 
 		socket.setTimeout(1e4);//10 seconds;
 
-		socket.on('timeout', function() {
+		socket.once('timeout', function() {
 			socket.destroy();
 		});
 	});
