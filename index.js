@@ -1,9 +1,12 @@
 "use strict";
 
-var https = require('https');
+var https = require("https");
 
-var xml2js = require('xml2js');
-var xmlParser = xml2js.Parser();
+var xml2js = require("xml2js");
+var xmlParser = new xml2js.Parser();
+
+var SERVER_ERROR_STATUS_CODE = 500;
+var TEN_SECONDS_IN_MILLISECONDS = 1e4;
 
 /*
 ===========
@@ -23,17 +26,17 @@ function Shipwire(username, password, options) {
 	options = options || {};
 	options.test = options.test || false;
 	options.server = options.test ? "Test" : "Production"; //Test or Production, default to production
-	options.sandbox = typeof options.sandbox != "undefined" ? !!options.sandbox : false;
+	options.sandbox = typeof options.sandbox !== "undefined" ? Boolean(options.sandbox) : false;
 
 	var requestOptions = {
 		port: 443,//https
-		method: 'POST',
+		method: "POST",
 		headers: {
 			"Content-Type": "application/xml"
 		}
 	};
 
-	requestOptions.host = options.sandbox ? 'api.beta.shipwire.com' : 'api.shipwire.com';
+	requestOptions.host = options.sandbox ? "api.beta.shipwire.com" : "api.shipwire.com";
 	requestOptions.host = options.host || requestOptions.host;//allow overriding of host completely
 
 	this.requestOptions = function() {
@@ -51,69 +54,54 @@ Utilities
 =========
 */
 
-
-function cloneObject(object) {
-	var clone = {};
-	for (var key in object) {
-		if (object.hasOwnProperty(key)) {
-			clone[key] = object[key];
-		}
-	}
-	return clone;
-}
-
 function parseXML(string, next) {
 
 	function recursiveCast(object) {
-		for (var key in object) {
-			if (object.hasOwnProperty(key)) {
-				object[key] = castValue(object[key]);
+
+		function castValue(value) {
+
+			if ((typeof value === "object" && value.constructor === Object) || Array.isArray(value)) {
+				return recursiveCast(value);
 			}
+
+			var dateMatch = value.match(/(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/);//"YYYY-MM-DD HH:MM:SS"
+
+			if (dateMatch) {
+				dateMatch.splice(0, 1);//disregard the fully matched string, return only matched groups
+
+				dateMatch = dateMatch.map(function(number) {
+					return number | 0;//numbers as strings to integers
+				});
+
+				--dateMatch[1];//decrease month value, as JS months start at 0;
+
+				value = new (Function.prototype.bind.apply(Date, [null].concat(dateMatch)));
+			}
+
+			if (value === "NO" || value === "FALSE") {
+				value = false;
+			} else if (value === "YES" || value === "TRUE") {
+				value = true;
+			}
+
+			return value;
 		}
+
+		Object.keys(object).forEach(function(key) {
+			object[key] = castValue(object[key]);
+		});
 
 		return object;
 	}
 
-	function castValue(value) {
-
-		if (typeof value === "object" && value.constructor === Object) {
-			return recursiveCast(value);
-		} else if (Array.isArray(value)) {
-			return recursiveCast(value);
-		}
-
-		var dateMatch = value.match(/(\d{4})\-(\d{2})\-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/);//"YYYY-MM-DD HH:MM:SS"
-		if (dateMatch) {
-			dateMatch.splice(0, 1);//disregard the fully matched string, return only matched groups
-
-			dateMatch = dateMatch.map(function (number) {
-				return number|0;//numbers as strings to integers
-			});
-
-			--dateMatch[1];//decrease month value, as JS months start at 0;
-
-			var NewDate = Date.bind.apply(Date, [null].concat(dateMatch));
-
-			value = new NewDate();//new Date from array
-		}
-
-		if (value === "NO" || value === "FALSE") {
-			value = false;
-		} else if (value === "YES" || value === "TRUE") {
-			value = true;
-		}
-
-		return value;
-	}
-
 	function checkError(object) {
+		var error = null;
 
 		if (object.Status.indexOf("Error") !== -1) {
-			var error = new Error(object.ErrorMessage);
-			return error;
+			error = new Error(object.ErrorMessage);
 		}
 
-		return null;
+		return error;
 	}
 
 	function checkErrorInOrder(order) {
@@ -156,11 +144,14 @@ function parseXML(string, next) {
 			if (order.TrackingNumber) {
 				order.TrackingNumber = order.TrackingNumber.map(function(item) {
 					var thisTrackingNumber = item.$;
-					thisTrackingNumber.trackingNumber = item._.replace(/[^a-zA-Z0-9\-\_]/g, "");
+
+					thisTrackingNumber.trackingNumber = item._.replace(/[^a-zA-Z0-9\-_]/g, "");
+
 					return thisTrackingNumber;
 				});
 				thisOrder.trackingNumber = order.TrackingNumber[0];
 			}
+
 			return thisOrder;
 		});
 
@@ -175,6 +166,8 @@ function parseXML(string, next) {
 
 		products = products.map(function(product) {
 			var thisProduct = product.$;
+
+
 			return thisProduct;
 		});
 
@@ -253,11 +246,15 @@ function parseXML(string, next) {
 					newMethod.cost[costType.toLowerCase()] = parseFloat(matchingType.Cost[0]._);
 				});
 
+				var deliveryEstimate = {};
+
+				newMethod.deliveryEstimate = deliveryEstimate;
+
 				if (method.DeliveryEstimate) {
-					newMethod.deliveryEstimate = {
-						minimum: parseInt(method.DeliveryEstimate[0].Minimum[0]._),
-						maximum: parseInt(method.DeliveryEstimate[0].Maximum[0]._)
-					};
+					deliveryEstimate = method.DeliveryEstimate[0];
+
+					newMethod.deliveryEstimate.minimum = parseInt(deliveryEstimate.Minimum[0]._, 10);
+					newMethod.deliveryEstimate.maximum = parseInt(deliveryEstimate.Maximum[0]._, 10);
 				}
 
 				return newMethod;
@@ -275,7 +272,7 @@ function parseXML(string, next) {
 		return orders;
 	}
 
-	xmlParser.parseString(string, function (err, result) {
+	xmlParser.parseString(string, function(err, result) {
 		if (err) {
 			return next(err);
 		}
@@ -352,14 +349,17 @@ function parseOrder(order) {
 	var shippingAddress = parseAddress(order.shippingAddress);
 
 	var shippingAddressValues = [];
-	for (var key in shippingAddress) {
-		if (shippingAddress.hasOwnProperty(key) && !!shippingAddress[key]) {
-			shippingAddressValues.push({
-				key: key,
-				value: shippingAddress[key]
-			});
-		}
-	}
+
+	Object.keys(shippingAddress)
+	.filter(function(key) {
+		return Boolean(shippingAddress[key]);
+	})
+	.forEach(function(key) {
+		shippingAddressValues.push({
+			key: key,
+			value: shippingAddress[key]
+		});
+	});
 
 	object.value.push({
 		key: "AddressInfo",
@@ -388,7 +388,7 @@ function parseOrder(order) {
 				},
 				{
 					key: "Quantity",
-					value: typeof item.quantity !== "undefined"? item.quantity : 1
+					value: typeof item.quantity !== "undefined" ? item.quantity : 1
 				}
 			]
 		});
@@ -440,13 +440,13 @@ function parseOrder(order) {
 
 Shipwire.prototype._newRequestBody = function(options) {
 
-	var requestBody = '<?xml version="1.0" encoding="UTF-8"?>\r\n';
+	var requestBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
 
-	requestBody += '<!DOCTYPE ' + options.type + ' SYSTEM "http://www.shipwire.com/exec/download/' + options.type + '.dtd">\r\n';
-	requestBody += '<' + options.type + '>\r\n';
-	requestBody += '\t<Username><![CDATA[' + this.username + ']]></Username>\r\n';
-	requestBody += '\t<Password><![CDATA[' + this.password + ']]></Password>\r\n';
-	requestBody += '\t<Server>' + this.options.server + '</Server>\r\n';//not needed for rate request. Do check for type "RateRequest"?
+	requestBody += "<!DOCTYPE " + options.type + " SYSTEM \"http://www.shipwire.com/exec/download/" + options.type + ".dtd\">\r\n";
+	requestBody += "<" + options.type + ">\r\n";
+	requestBody += "\t<Username><![CDATA[" + this.username + "]]></Username>\r\n";
+	requestBody += "\t<Password><![CDATA[" + this.password + "]]></Password>\r\n";
+	requestBody += "\t<Server>" + this.options.server + "</Server>\r\n";//not needed for rate request. Do check for type "RateRequest"?
 
 	function forEachAttribute(attribute) {
 		return " " + attribute.key + "=\"" + attribute.value + "\"";
@@ -459,54 +459,56 @@ Shipwire.prototype._newRequestBody = function(options) {
 			return;
 		} else if (field.value === true) {//strict true, or strict false. Do we need false?
 
-			localBody += '<' + field.key;
+			localBody += "<" + field.key;
 
 			if (field.attributes && Array.isArray(field.attributes)) {
 				localBody += field.attributes.forEach(forEachAttribute);
 			}
 
-			localBody += '/>';
+			localBody += "/>";
 
 		} else if (Array.isArray(field.value)) {
 
-			localBody += '<' + field.key;
+			localBody += "<" + field.key;
 
 			if (field.attributes) {
-				field.attributes.forEach(function (attribute) {
+				field.attributes.forEach(function(attribute) {
 					localBody += forEachAttribute(attribute);
 				});
 			}
 
-			localBody += '>';
+			localBody += ">";
 
 			field.value.forEach(function(value) {
 				localBody += forEachField(value);
 			});
 
-			localBody += '</' + field.key + '>';
+			localBody += "</" + field.key + ">";
 
 		} else {
 
-			localBody += '<' + field.key;
+			localBody += "<" + field.key;
 
 			if (field.attributes) {
 				localBody += field.attributes.forEach(forEachAttribute);
 			}
 
-			localBody += '><![CDATA[' + field.value + ']]></' + field.key + '>';
+			localBody += "><![CDATA[" + field.value + "]]></" + field.key + ">";
 
 		}
 
-		localBody += '\r\n';
+		localBody += "\r\n";
+
 		return localBody;
 	}
 
 	options.additionalFields.forEach(function(field) {
 		var localBody = forEachField(field);
+
 		requestBody += localBody;
 	});
 
-	requestBody += '</' + options.type + '>\n';
+	requestBody += "</" + options.type + ">\n";
 
 	return requestBody;
 };
@@ -515,33 +517,35 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 
 	var responseBody = "";
 	var req = https.request(requestOptions, function(res) {
+		var error = null;
 
-		if (res.statusCode === 500) {
-			var error = new Error("Shipwire server error");
-			error.code = 500;
+		if (res.statusCode >= SERVER_ERROR_STATUS_CODE) {
+			error = new Error("Shipwire server error");
+			error.code = res.statusCode;
+
 			return next(error);
 		}
 
-		res.setEncoding('utf-8');
-		res.on('data', function(chunk) {
+		res.setEncoding("utf-8");
+
+		res.on("data", function(chunk) {
 			responseBody += chunk;
 		});
 
-		res.on('end', function() {
+		res.on("end", function() {
 			next(null, responseBody);
 		});
 	});
 
-	req.on('socket', function(socket) {
+	req.on("socket", function(socket) {
+		socket.setTimeout(TEN_SECONDS_IN_MILLISECONDS);
 
-		socket.setTimeout(1e4);//10 seconds;
-
-		socket.once('timeout', function() {
+		socket.once("timeout", function() {
 			socket.destroy();
 		});
 	});
 
-	req.on('error', function(err) {
+	req.on("error", function(err) {
 		return next(err);
 	});
 
@@ -588,7 +592,8 @@ Shipwire.prototype._track = function(options, next) {
 	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
 	var requestOptions = this.requestOptions();
-	requestOptions.path = '/exec/TrackingServices.php';
+
+	requestOptions.path = "/exec/TrackingServices.php";
 
 	this._makeRequest(requestOptions, requestBody, function(err, body) {
 
@@ -607,6 +612,7 @@ Shipwire.prototype._track = function(options, next) {
 			}
 
 			json = options._multiple ? json : json[0];
+
 			return next(null, json);
 		});
 	});
@@ -642,6 +648,7 @@ Shipwire.prototype.trackById = function(id, options, next) {
 
 	options.id = id;
 	options._multiple = true;//return an array of tracking information, as each order may have multiple tracking numbers
+
 	return Shipwire.prototype._track.call(this, options, next);
 };
 
@@ -662,6 +669,7 @@ Shipwire.prototype.trackByOrderNumber = function(id, options, next) {
 
 	options.orderNo = id;
 	options._multiple = true;//return an array of tracking information, as each order may have multiple tracking numbers
+
 	return Shipwire.prototype._track.call(this, options, next);
 };
 
@@ -727,7 +735,8 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
 	var requestOptions = this.requestOptions();
-	requestOptions.path = '/exec/InventoryServices.php';
+
+	requestOptions.path = "/exec/InventoryServices.php";
 
 	this._makeRequest(requestOptions, requestBody, function(err, body) {
 		if (err) {
@@ -744,6 +753,7 @@ Shipwire.prototype.inventoryStatus = function(options, next) {
 			}
 
 			json = options._multiple ? json : json[0];
+
 			return next(err, json);
 		});
 	});
@@ -771,7 +781,8 @@ Shipwire.prototype._rateRequest = function(orders, options, next) {
 	var requestBody = Shipwire.prototype._newRequestBody.call(this, requestBodyOptions);
 
 	var requestOptions = this.requestOptions();
-	requestOptions.path = '/exec/RateServices.php';
+
+	requestOptions.path = "/exec/RateServices.php";
 
 	this._makeRequest(requestOptions, requestBody, function(err, body) {
 		if (err) {
@@ -792,6 +803,7 @@ Shipwire.prototype._rateRequest = function(orders, options, next) {
 				json = json.map(function(order) {
 					order.order = Array.isArray(orders) ? orders[order._sequence - 1] : orders;
 					delete order._sequence;
+
 					return order;
 				});
 
@@ -849,6 +861,7 @@ Shipwire.prototype.rateRequestByMethod = function(orders, method, options, next)
 
 	orders = orders.map(function(order) {
 		order.method = method.toUpperCase();
+
 		return order;
 	});
 

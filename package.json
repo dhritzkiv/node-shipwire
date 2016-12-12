@@ -4,12 +4,12 @@
   "description": "Node library to communicate with the Shipwire API",
   "main": "index.js",
   "files": [
-	  "index.js"
+    "index.js"
   ],
   "private": false,
   "scripts": {
     "test": "mocha --reporter spec",
-    "lint": "jshint .",
+    "lint": "eslint . --fix",
     "validate": "npm ls"
   },
   "config": {
@@ -41,6 +41,7 @@
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
+    "eslint": "^3.12.0",
     "mocha": "^3.2.0",
     "precommit-hook": "^3.0.0"
   },
