@@ -3,6 +3,9 @@
   "version": "1.0.2",
   "description": "Node library to communicate with the Shipwire API",
   "main": "index.js",
+  "files": [
+	  "index.js"
+  ],
   "private": false,
   "scripts": {
     "test": "mocha --reporter spec",
