@@ -85,11 +85,15 @@ function parseXML(string, next) {
 		var dateMatch = value.match(/(\d{4})\-(\d{2})\-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/);//"YYYY-MM-DD HH:MM:SS"
 		if (dateMatch) {
 			dateMatch.splice(0, 1);//disregard the fully matched string, return only matched groups
+
 			dateMatch = dateMatch.map(function (number) {
 				return number|0;//numbers as strings to integers
 			});
+
 			--dateMatch[1];//decrease month value, as JS months start at 0;
+
 			var NewDate = Date.bind.apply(Date, [null].concat(dateMatch));
+
 			value = new NewDate();//new Date from array
 		}
 
@@ -108,17 +112,21 @@ function parseXML(string, next) {
 			var error = new Error(object.ErrorMessage);
 			return error;
 		}
-		return false;
+
+		return null;
 	}
 
 	function checkErrorInOrder(order) {
-		var error = false;
+		var error = null;
+
 		if (order.Errors) {
 			error = new Error(order.Errors[0].Error);
 		}
+
 		if (order.Warnings) {
 			error = new Error(order.Warnings[0].Warning);
 		}
+
 		return error;
 	}
 
@@ -129,9 +137,11 @@ function parseXML(string, next) {
 		}
 
 		var error;
+
 		orders.some(function(order) {
 			error = checkErrorInOrder(order);
-			return !!error;
+
+			return Boolean(error);
 		});
 
 		if (error) {
@@ -178,9 +188,11 @@ function parseXML(string, next) {
 		}
 
 		var error;
+
 		orders.some(function(order) {
 			error = checkErrorInOrder(order);
-			return !!error;
+
+			return Boolean(error);
 		});
 
 		if (error) {
@@ -215,6 +227,7 @@ function parseXML(string, next) {
 				};
 
 				var carrierMatch = method.Service[0]._.match(/(UPS|USPS|FedEx|Purolator|Canada\sPost)/g);
+
 				if (carrierMatch) {
 					newMethod.service.carrier = carrierMatch[0];
 				} else {
@@ -224,15 +237,8 @@ function parseXML(string, next) {
 				function castCost(object) {
 
 					var costObject = {
-						total: parseFloat(object._)//,
-						//currency: object.$.currency,
-						//converted: object.$.converted
+						total: parseFloat(object._)
 					};
-
-					/*if (costObject.converted) {
-						costObject.originalTotal = object.$.originalCost;
-						costObject.originalCurrency = object.$.originalCurrency;
-					}*/
 
 					return costObject;
 				}
@@ -244,17 +250,15 @@ function parseXML(string, next) {
 						return item.$.type === costType;
 					})[0];
 
-					newMethod.cost[costType.toLowerCase()] = parseFloat(matchingType.Cost[0]._);//castCost(matchingType.Cost[0]);
-
-					/*if (typeof matchingType.$.includedInCost != "undefined") {
-						newMethod.cost[costType.toLowerCase()].includedInCost = matchingType.$.includedInCost;
-					}*/
+					newMethod.cost[costType.toLowerCase()] = parseFloat(matchingType.Cost[0]._);
 				});
 
-				newMethod.deliveryEstimate = {
-					minimum: parseInt(method.DeliveryEstimate[0].Minimum[0]._),
-					maximum: parseInt(method.DeliveryEstimate[0].Maximum[0]._)
-				};
+				if (method.DeliveryEstimate) {
+					newMethod.deliveryEstimate = {
+						minimum: parseInt(method.DeliveryEstimate[0].Minimum[0]._),
+						maximum: parseInt(method.DeliveryEstimate[0].Maximum[0]._)
+					};
+				}
 
 				return newMethod;
 			});
@@ -538,7 +542,6 @@ Shipwire.prototype._makeRequest = function(requestOptions, requestBody, next) {
 	});
 
 	req.on('error', function(err) {
-		//console.log('http req error: ' + err);
 		return next(err);
 	});
 
@@ -758,11 +761,7 @@ Shipwire.prototype._rateRequest = function(orders, options, next) {
 
 	var requestBodyOptions = {
 		type: "RateRequest",
-		additionalFields: [
-			/*{
-				currency: "CAD"
-			}*/
-		]
+		additionalFields: []
 	};
 
 	orders.forEach(function(order) {
